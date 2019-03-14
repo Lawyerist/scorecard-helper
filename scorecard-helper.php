@@ -39,7 +39,7 @@ function scorecard_helper_admin_stylesheet() {
 	wp_enqueue_style( 'scorecard-helper-admin-css' );
 }
 
-add_action( 'admin_enqueue_scripts', 'scorecard_helper_frontend_stylesheet' );
+add_action( 'admin_enqueue_scripts', 'scorecard_helper_admin_stylesheet' );
 
 
 // Registers and enqueues the frontend stylesheet.
