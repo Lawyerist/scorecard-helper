@@ -17,50 +17,9 @@ class Scorecard_Report_Labsters extends WP_List_Table {
 
 	}
 
-	function column_cb( $item ){
-
-		return sprintf(
-			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
-			/*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
-			/*$2%s*/ $item['ID']                //The value of the checkbox should be the record's id
-		);
-
-	}
-
-	function get_columns() {
-
-		$columns = array(
-			'cb'        		=> '<input type="checkbox" />', //Render a checkbox instead of text
-			'name'     			=> 'Name',
-			'current_grade'	=> 'Current Grade',
-			'last_updated'	=> 'Last Updated',
-		);
-
-		return $columns;
-
-	}
-
-	function get_sortable_columns() {
-
-		$sortable_columns = array(
-			'name'					=> array( 'name', true ), // Already sorted.
-			'current_grade'	=> array( 'current_grade', false ),
-			'last_updated'	=> array( 'last_updated', false ),
-		);
-
-		return $sortable_columns;
-
-	}
-
 	function prepare_items() {
 
-			global $wpdb; //This is used only if making any database queries
-
-			/**
-			 * First, lets decide how many records per page to show
-			 */
-			$per_page = 5;
-
+			$per_page = 20;
 
 			/**
 			 * REQUIRED. Now we need to define our column headers. This includes a complete
@@ -69,26 +28,21 @@ class Scorecard_Report_Labsters extends WP_List_Table {
 			 * can be defined in another method (as we've done here) before being
 			 * used to build the value for our _column_headers property.
 			 */
-			$columns = $this->get_columns();
-			$hidden = array();
-			$sortable = $this->get_sortable_columns();
+			$columns	= array(
+				'name'     			=> 'Name',
+				'current_grade'	=> 'Current Grade',
+				'last_updated'	=> 'Last Updated',
+			);
 
+			$hidden		= array();
 
-			/**
-			 * REQUIRED. Finally, we build an array to be used by the class for column
-			 * headers. The $this->_column_headers property takes an array which contains
-			 * 3 other arrays. One for all columns, one for hidden columns, and one
-			 * for sortable columns.
-			 */
-			$this->_column_headers = array($columns, $hidden, $sortable);
+			$sortable	= array(
+				'name'					=> array( 'name', true ), // Already sorted.
+				'current_grade'	=> array( 'current_grade', false ),
+				'last_updated'	=> array( 'last_updated', false ),
+			);
 
-
-			/**
-			 * Optional. You can handle your bulk actions however you see fit. In this
-			 * case, we'll handle them within our package just to keep things clean.
-			 */
-			$this->process_bulk_action();
-
+			$this->_column_headers = array( $columns, $hidden, $sortable );
 
 			/**
 			 * Instead of querying a database, we're going to fetch the example data
@@ -100,23 +54,6 @@ class Scorecard_Report_Labsters extends WP_List_Table {
 			 * be able to use your precisely-queried data immediately.
 			 */
 			$data = $this->example_data;
-
-
-			/**
-			 * This checks for sorting input and sorts the data in our array accordingly.
-			 *
-			 * In a real-world situation involving a database, you would probably want
-			 * to handle sorting by passing the 'orderby' and 'order' values directly
-			 * to a custom query. The returned data will be pre-sorted, and this array
-			 * sorting technique would be unnecessary.
-			 */
-			function usort_reorder($a,$b){
-					$orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'title'; //If no sort, default to title
-					$order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; //If no order, default to asc
-					$result = strcmp($a[$orderby], $b[$orderby]); //Determine sort order
-					return ($order==='asc') ? $result : -$result; //Send final sort direction to usort
-			}
-			usort($data, 'usort_reorder');
 
 
 			/***********************************************************************
