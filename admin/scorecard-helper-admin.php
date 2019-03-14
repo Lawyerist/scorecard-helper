@@ -83,7 +83,7 @@ class Scorecard_Report_Labsters extends WP_List_Table {
 			 * without filtering. We'll need this later, so you should always include it
 			 * in your own package classes.
 			 */
-			$total_items = count($data);
+			$total_items = count( $data );
 
 
 			/**
@@ -91,7 +91,7 @@ class Scorecard_Report_Labsters extends WP_List_Table {
 			 * to ensure that the data is trimmed to only the current page. We can use
 			 * array_slice() to
 			 */
-			$data = array_slice($data,(($current_page-1)*$per_page),$per_page);
+			$data = array_slice( $data, ( ($current_page - 1 ) * $per_page ), $per_page );
 
 
 
@@ -106,9 +106,9 @@ class Scorecard_Report_Labsters extends WP_List_Table {
 			 * REQUIRED. We also have to register our pagination options & calculations.
 			 */
 			$this->set_pagination_args( array(
-					'total_items' => $total_items,                  //WE have to calculate the total number of items
-					'per_page'    => $per_page,                     //WE have to determine how many items to show on a page
-					'total_pages' => ceil($total_items/$per_page)   //WE have to calculate the total number of pages
+					'total_items' => $total_items,        		          //WE have to calculate the total number of items
+					'per_page'    => $per_page,        			            //WE have to determine how many items to show on a page
+					'total_pages' => ceil( $total_items / $per_page )   //WE have to calculate the total number of pages
 			) );
 	}
 
