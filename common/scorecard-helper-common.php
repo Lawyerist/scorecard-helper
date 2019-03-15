@@ -58,6 +58,8 @@ function get_scorecard_results( $user_email = '' ) {
 
 	if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) :
 
+		$scorecard_results = array();
+
 		if ( empty( $user_email ) ) {
 
 			// Gets the current user's email address.
@@ -86,8 +88,6 @@ function get_scorecard_results( $user_email = '' ) {
 		$entries = GFAPI::get_entries( $form_ids, $search_criteria, $sorting );
 
 		if ( !empty( $entries ) ) {
-
-			$scorecard_results = array();
 
 			foreach ( $entries as $entry ) {
 

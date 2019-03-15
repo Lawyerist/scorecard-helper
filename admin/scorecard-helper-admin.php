@@ -2,117 +2,52 @@
 
 // Set permissions!!!
 
-class Scorecard_Report_Labsters extends WP_List_Table {
 
-	function __construct() {
+/*if ( !class_exists( 'WP_List_Table' ) ) {
+	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+}*/
 
-		global $status, $page;
+class Labster_Scorecards_Report extends WP_List_Table {
 
-		//Set parent defaults
-		parent::__construct( array(
-			'singular'  => 'labster',
-			'plural'    => 'labsters',
-			'ajax'      => TRUE,
-		) );
+	function get_columns() {
+
+	  $columns = array(
+	    'last_name'	=> 'Name',
+			'email'			=> 'Email',
+	  );
+
+	  return $columns;
+	}
+
+	function sortable_columns() {
+
+		$sortable_columns = array(
+			'last_name'			=> array( 'last_name', true ),
+			'email'					=> array( 'email', false ),
+		)
+
+		return $sortable_columns;
 
 	}
+
+	$labsters	= get_active_labsters();
+
 
 	function prepare_items() {
 
-			$per_page = 20;
+	  $columns = $this->get_columns();
+	  $hidden = array();
+	  $sortable = $this->get_sortable_columns();
+	  $this->_column_headers = array( $columns, $hidden, $sortable );
+	  $this->items = $labsters;
 
-			/**
-			 * REQUIRED. Now we need to define our column headers. This includes a complete
-			 * array of columns to be displayed (slugs & titles), a list of columns
-			 * to keep hidden, and a list of columns that are sortable. Each of these
-			 * can be defined in another method (as we've done here) before being
-			 * used to build the value for our _column_headers property.
-			 */
-			$columns	= array(
-				'name'     			=> 'Name',
-				'current_grade'	=> 'Current Grade',
-				'last_updated'	=> 'Last Updated',
-			);
-
-			$hidden		= array();
-
-			$sortable	= array(
-				'name'					=> array( 'name', true ), // Already sorted.
-				'current_grade'	=> array( 'current_grade', false ),
-				'last_updated'	=> array( 'last_updated', false ),
-			);
-
-			$this->_column_headers = array( $columns, $hidden, $sortable );
-
-			/**
-			 * Instead of querying a database, we're going to fetch the example data
-			 * property we created for use in this plugin. This makes this example
-			 * package slightly different than one you might build on your own. In
-			 * this example, we'll be using array manipulation to sort and paginate
-			 * our data. In a real-world implementation, you will probably want to
-			 * use sort and pagination data to build a custom query instead, as you'll
-			 * be able to use your precisely-queried data immediately.
-			 */
-			$data = $this->example_data;
-
-
-			/***********************************************************************
-			 * ---------------------------------------------------------------------
-			 * vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-			 *
-			 * In a real-world situation, this is where you would place your query.
-			 *
-			 * For information on making queries in WordPress, see this Codex entry:
-			 * http://codex.wordpress.org/Class_Reference/wpdb
-			 *
-			 * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-			 * ---------------------------------------------------------------------
-			 **********************************************************************/
-
-
-			/**
-			 * REQUIRED for pagination. Let's figure out what page the user is currently
-			 * looking at. We'll need this later, so you should always include it in
-			 * your own package classes.
-			 */
-			$current_page = $this->get_pagenum();
-
-			/**
-			 * REQUIRED for pagination. Let's check how many items are in our data array.
-			 * In real-world use, this would be the total number of items in your database,
-			 * without filtering. We'll need this later, so you should always include it
-			 * in your own package classes.
-			 */
-			$total_items = count( $data );
-
-
-			/**
-			 * The WP_List_Table class does not handle pagination for us, so we need
-			 * to ensure that the data is trimmed to only the current page. We can use
-			 * array_slice() to
-			 */
-			$data = array_slice( $data, ( ($current_page - 1 ) * $per_page ), $per_page );
-
-
-
-			/**
-			 * REQUIRED. Now we can add our *sorted* data to the items property, where
-			 * it can be used by the rest of the class.
-			 */
-			$this->items = $data;
-
-
-			/**
-			 * REQUIRED. We also have to register our pagination options & calculations.
-			 */
-			$this->set_pagination_args( array(
-					'total_items' => $total_items,        		          //WE have to calculate the total number of items
-					'per_page'    => $per_page,        			            //WE have to determine how many items to show on a page
-					'total_pages' => ceil( $total_items / $per_page )   //WE have to calculate the total number of pages
-			) );
 	}
 
+
 }
+
+
+
 
 
 // Adds a page to the Users menu.
@@ -129,6 +64,15 @@ function scorecard_admin_reporting() {
 	echo '<div class="wrap">';
 
 		echo '<h1 class="wp-heading-inline">Small Firm Scorecard Report: Labsters</h1>';
+
+		$myListTable = new Labster_Scorecards_Report();
+		$myListTable->prepare_items();
+		$myListTable->display();
+
+		/********************************************************************************/
+		/* REGULAR TABLE ****************************************************************/
+		echo '<hr />';
+		/********************************************************************************/
 
 		echo '<table class="widefat">';
 			echo '<thead>';
@@ -166,16 +110,16 @@ function scorecard_admin_reporting() {
 						}
 
 						$last_scorecard_grade		= $scorecard_results[ 0 ][ 'grade' ];
-						$last_scorecard_score		= $scorecard_results[ 0 ][ 'score' ];
+						$last_scorecard_score		= $scorecard_results[ 0 ][ 'percentage' ];
 						$last_scorecard_version	= $scorecard_results[ 0 ][ 'version' ];
 						$last_scorecard_date		= date_format( date_create( $scorecard_results[ 0 ][ 'date' ] ), 'M. j, Y' );
 						$total_scorecards				= count( $scorecard_results );
 
 						echo '<tr>';
 							echo '<td>' . $labster[ 'last_name' ] . ', ' . $labster[ 'first_name' ] . '</td>';
-							echo '<td>' . $last_scorecard_grade . '</td>';
+							echo '<td><strong>' . $last_scorecard_grade . '</strong> (' . round( $last_scorecard_score ) . '%)</td>';
 							echo '<td>' . $last_scorecard_date . '</td>';
-							echo '<td>See history (' . $total_scorecards . ' ' . _n( 'scorecard', 'scorecards', $total_scorecards ) . ')</td>';
+							echo '<td>' . $total_scorecards . ' ' . _n( 'scorecard', 'scorecards', $total_scorecards ) . ' (see history)</td>';
 						echo '</tr>';
 
 					}
