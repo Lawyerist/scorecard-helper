@@ -146,6 +146,7 @@ function get_scorecard_results( $user_email = '' ) {
 				// Creates a new sub-array for the scorecard.
 				array_push( $scorecard_results, array(
 					'entry_id'		=> $entry_id,
+					'form_id'			=> $form_id,
 					'grade'				=> $scorecard_result[ 'grade' ],
 					'percentage'	=> $scorecard_result[ 'percentage' ],
 					'version'			=> $scorecard_result[ 'version' ],

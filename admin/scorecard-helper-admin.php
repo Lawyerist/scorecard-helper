@@ -32,6 +32,7 @@ function scorecard_admin_reporting() {
 					echo '<th>Grade</th>';
 					echo '<th>Date</th>';
 					echo '<th>Version</th>';
+					echo '<th>More</th>';
 				echo '</tr>';
 			echo '</thead>';
 			echo '<tbody>';
@@ -40,6 +41,8 @@ function scorecard_admin_reporting() {
 
 				foreach ( $scorecard_results as $scorecard_result ) {
 
+					$scorecard_id				= $scorecard_result[ 'entry_id' ];
+					$form_id						= $scorecard_result[ 'form_id' ];
 					$scorecard_grade		= $scorecard_result[ 'grade' ];
 					$scorecard_score		= $scorecard_result[ 'percentage' ];
 					$scorecard_date			= date_format( date_create( $scorecard_result[ 'date' ] ), 'M. j, Y' );
@@ -49,6 +52,7 @@ function scorecard_admin_reporting() {
 						echo '<td><strong>' . $scorecard_grade . '</strong> (' . round( $scorecard_score ) . '%)</td>';
 						echo '<td>' . $scorecard_date . '</td>';
 						echo '<td>' . $scorecard_version . '</td>';
+						echo '<td><a href="https://lawyerist.com/lawyerist/dev/wp-admin/admin.php?page=gf_entries&view=entry&id=' . $form_id . '&lid=' . $scorecard_id . '">See Scorecard</a></td>';
 					echo '</tr>';
 
 				}
