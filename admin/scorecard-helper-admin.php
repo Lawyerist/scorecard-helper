@@ -48,11 +48,13 @@ function scorecard_admin_reporting() {
 					$scorecard_date			= date_format( date_create( $scorecard_result[ 'date' ] ), 'M. j, Y' );
 					$scorecard_version	= $scorecard_result[ 'version' ];
 
+					$gf_entries_url			= menu_page_url( 'gf_entries', false );
+
 					echo '<tr>';
 						echo '<td><strong>' . $scorecard_grade . '</strong> (' . round( $scorecard_score ) . '%)</td>';
 						echo '<td>' . $scorecard_date . '</td>';
 						echo '<td>' . $scorecard_version . '</td>';
-						echo '<td><a href="https://lawyerist.com/lawyerist/dev/wp-admin/admin.php?page=gf_entries&view=entry&id=' . $form_id . '&lid=' . $scorecard_id . '">See Scorecard</a></td>';
+						echo '<td><a href="' . $gf_entries_url. '&view=entry&id=' . $form_id . '&lid=' . $scorecard_id . '">See Scorecard</a></td>';
 					echo '</tr>';
 
 				}
@@ -130,7 +132,7 @@ function scorecard_admin_reporting() {
 							echo '</td>';
 							echo '<td><strong>' . $last_scorecard_grade . '</strong> (' . round( $last_scorecard_score ) . '%)</td>';
 							echo '<td>' . $last_scorecard_date . '</td>';
-							echo '<td>' . $total_scorecards . ' ' . _n( 'scorecard', 'scorecards', $total_scorecards ) . ' (<a href="' . $this_page_url . '&email=' . $labster[ 'email' ] . '">see history</a>)</td>';
+							echo '<td><a href="' . $this_page_url . '&email=' . $labster[ 'email' ] . '">See history</a> (' . $total_scorecards . ')</td>';
 						echo '</tr>';
 
 					}
