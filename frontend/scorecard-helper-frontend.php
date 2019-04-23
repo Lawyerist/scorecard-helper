@@ -17,7 +17,7 @@ function scorecard_results_graph() {
 
 			echo '<div id="dashboard-scorecard-widget" class="card">';
 
-			echo '<p class="dashboard-widget-label">Small Firm Scorecard</p>';
+			echo '<p class="card-label">Small Firm Scorecard</p>';
 
 				echo '<p class="dashboard-widget-note">We don\'t have a score for you yet.</p>';
 				echo '<p class="dashboard-widget-note">The Small Firm Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>';
@@ -42,7 +42,7 @@ function scorecard_results_graph() {
 
 			echo '<div id="dashboard-scorecard-widget" class="card">';
 
-			echo '<p class="dashboard-widget-label">Small Firm Scorecard</p>';
+			echo '<p class="card-label">Small Firm Scorecard</p>';
 
 			echo '<div class="scorecard-results-wrapper">';
 
