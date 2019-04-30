@@ -1,54 +1,6 @@
 <?php
 
 /**
-* Returns an array of active Labsters.
-*/
-function get_active_labsters() {
-
-	$labster_query_args = array(
-		'post_type'				=> 'wc_user_membership',
-		'post_status'			=> 'wcm-active',
-		'post_parent__in'	=> array(
-			223686, // Lab Pro
-			223685, // Lab
-		),
-		'posts_per_page'	=> -1,
-	);
-
-	$labster_query = new WP_Query( $labster_query_args );
-
-	if ( $labster_query->have_posts() ) :
-
-		$labsters	= array();
-
-		while ( $labster_query->have_posts() ) : $labster_query->the_post();
-
-			array_push( $labsters, array(
-				'labster_id'	=> get_the_ID(),
-				'email'				=> get_the_author_meta( 'user_email' ),
-				'first_name'	=> get_the_author_meta( 'user_firstname' ),
-				'last_name'		=> get_the_author_meta( 'user_lastname' ),
-			) );
-
-		endwhile; wp_reset_postdata();
-
-		// Sorts $labsters[] by last name.
-		usort( $labsters, function( $a, $b ) {
-			return $a[ 'last_name' ] <=> $b[ 'last_name' ];
-		});
-
-		return $labsters;
-
-	else :
-
-		return;
-
-	endif;
-
-}
-
-
-/**
 * Returns an array of scorecard data for a given email address.
 *
 * @param string $user_email Optional. Accepts a valid email address.
