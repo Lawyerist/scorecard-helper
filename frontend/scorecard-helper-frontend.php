@@ -22,7 +22,7 @@ function scorecard_results_graph() {
 				echo '<p class="dashboard-widget-note">We don\'t have a score for you yet.</p>';
 				echo '<p class="dashboard-widget-note">The Small Firm Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>';
 
-				echo '<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get Your Score</a></p>';
+				echo '<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>';
 
 			echo '</div>'; // Close #dashboard-scorecard-widget
 
@@ -99,7 +99,7 @@ function scorecard_results_graph() {
 
 			}
 
-			echo '<p align="center" class="remove_bottom"><a class="button remove_bottom" href="' . $scorecard_url . '">Update your score</a></p>';
+			echo '<p align="center" class="remove_bottom"><a class="button remove_bottom" href="' . $scorecard_url . '">Update My Score</a></p>';
 
 			echo '</div>'; // Close #dashboard-scorecard-widget
 
