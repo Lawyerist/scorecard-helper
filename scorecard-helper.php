@@ -1,7 +1,7 @@
 <?php
 
 /*
-Plugin Name: Lawyerist Small firm Scorecard Helper Plugin
+Plugin Name: Lawyerist Small Firm Scorecard Helper Plugin
 Plugin URI: https://lawyerist.com
 Description: Enhanced functionality for the Small Firm Scorecard.
 Author: Sam Glover
