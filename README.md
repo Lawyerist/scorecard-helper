@@ -1,3 +1,3 @@
 # Lawyerist Small Firm Scorecard Helper Plugin
 
-Functions for adding functionality to the Scorecard.
+See [Github commits](https://github.com/Lawyerist/scorecard-helper) for a sort-of changelog.
