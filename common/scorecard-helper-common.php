@@ -50,18 +50,35 @@ function get_scorecard_results( $user_email = '' ) {
 				// Checks to see which form was submitted.
 			  switch ( $form_id ) {
 
-			    case $form_id == '45': // Small Firm Scorecard
+					// Small Firm Scorecard 1.0
+			    case $form_id == 45:
+						$total = 500;
+						$scorecard_result[ 'version' ] = 'Small Firm Scorecard 1.0';
 
+						break;
+
+					// Small Firm Scorecard 2.0
+					case $form_id == 60:
 			      $total = 500;
-						$scorecard_result[ 'version' ] = 'Small Firm Scorecard';
+						$scorecard_result[ 'version' ] = 'Small Firm Scorecard 2.0';
 
 			      break;
 
-			    case $form_id == 47: // Solo Practice Scorecard
+					// Solo Practice Scorecard 1.0
+			    case $form_id == 47:
 			      $total = 400;
-						$scorecard_result[ 'version' ] = 'Solo Practice Scorecard';
+						$scorecard_result[ 'version' ] = 'Solo Practice Scorecard 1.0';
 
 			      break;
+
+					// Solo Practice Scorecard 2.0
+			    case $form_id == 61:
+			      $total = 420;
+						$scorecard_result[ 'version' ] = 'Solo Practice Scorecard 2.0';
+
+			      break;
+
+
 
 			  }
 
