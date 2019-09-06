@@ -46,11 +46,10 @@ function get_scorecard_results( $user_email = '' ) {
 		$entries_v1 = GFAPI::get_entries( $form_ids_v1, $search_criteria_v1, $sorting );
 		$entries_v2 = GFAPI::get_entries( $form_ids_v2, $search_criteria_v2, $sorting );
 
-		$entries = array_merge( $entries_v1, $entries_v2 );
+		$entries = array_merge( $entries_v2, $entries_v1 );
+		// The order is important so the entries sort properly by date.
 
 		if ( !empty( $entries ) ) {
-
-
 
 			foreach ( $entries as $entry ) {
 
