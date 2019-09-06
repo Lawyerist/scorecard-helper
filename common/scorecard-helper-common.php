@@ -21,12 +21,18 @@ function get_scorecard_results( $user_email = '' ) {
 		}
 
 		// Defines the Gravity Forms form ids.
-		// 45 = Small Firm Scorecard; 47 = Solo Practice Scorecard
-		$form_ids		= array( 45, 47 );
+		// 45 & 60 = Small Firm Scorecard; 47 & 61 = Solo Practice Scorecard
+		$form_ids_v1	= array( 45, 47 );
+		$form_ids_v2	= array( 60, 61 );
 
 		// Searches for all scorecards that have the current user's email address.
-		$search_criteria['field_filters'][] = array(
-			'key'		=> '18', // Luckily, 18 is the email field ID in both forms.
+		$search_criteria_v1[ 'field_filters' ][] = array(
+			'key'		=> 18, // Luckily, 18 is the email field ID in both v1 forms.
+			'value' => $user_email,
+		);
+
+		$search_criteria_v2[ 'field_filters' ][] = array(
+			'key'		=> 1, // Deliberately, 1 is the email field ID in both v2 forms.
 			'value' => $user_email,
 		);
 
@@ -37,15 +43,20 @@ function get_scorecard_results( $user_email = '' ) {
 		);
 
 		// Gets all the scorecards for the given $user_email.
-		$entries = GFAPI::get_entries( $form_ids, $search_criteria, $sorting );
+		$entries_v1 = GFAPI::get_entries( $form_ids_v1, $search_criteria_v1, $sorting );
+		$entries_v2 = GFAPI::get_entries( $form_ids_v2, $search_criteria_v2, $sorting );
+
+		$entries = array_merge( $entries_v1, $entries_v2 );
 
 		if ( !empty( $entries ) ) {
 
+
+
 			foreach ( $entries as $entry ) {
 
-				$entry_id		= $entry['id'];
-				$form_id		= $entry['form_id'];
-				$raw_score	= $entry['gsurvey_score'];
+				$entry_id		= $entry[ 'id' ];
+				$form_id		= $entry[ 'form_id' ];
+				$raw_score	= $entry[ 'gsurvey_score' ];
 
 				// Checks to see which form was submitted.
 			  switch ( $form_id ) {
@@ -77,8 +88,6 @@ function get_scorecard_results( $user_email = '' ) {
 						$scorecard_result[ 'version' ] = 'Solo Practice Scorecard 2.0';
 
 			      break;
-
-
 
 			  }
 

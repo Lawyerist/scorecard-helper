@@ -32,7 +32,7 @@ function scorecard_results_graph() {
 
 		ob_start();
 
-			$last_version = $scorecard_results[ 0 ][ 'version' ];
+			$last_version = $scorecard_results[ 0 ][ 'form_id' ];
 
 			// Reverses the order of the array so that the results display oldest to
 			// newest from left to right.
@@ -87,12 +87,14 @@ function scorecard_results_graph() {
 
 			switch ( $last_version ) {
 
-				case ( $last_version == 'Small Firm Scorecard' ) :
+				case $last_version == 45:
+				case $last_version == 60:
 
 					$scorecard_url = 'https://lawyerist.com/scorecard/small-firm-scorecard/';
 					break;
 
-				case ( $last_version == 'Solo Practice Scorecard' ) :
+					case $last_version == 47:
+					case $last_version == 61:
 
 					$scorecard_url = 'https://lawyerist.com/scorecard/solo-practice-scorecard/';
 					break;
