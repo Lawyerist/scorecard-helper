@@ -9,7 +9,7 @@ Version: [See README.md for changelog]
 Author URI: http://lawyerist.com
 */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( !defined( 'ABSPATH' ) ) exit;
 
 require_once( plugin_dir_path( __FILE__ ) . 'common/scorecard-helper-common.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'frontend/scorecard-helper-frontend.php' );
