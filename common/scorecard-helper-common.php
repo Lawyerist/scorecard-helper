@@ -17,7 +17,8 @@ function get_scorecard_results( $user_email = '' ) {
 		if ( empty( $user_email ) ) {
 
 			// Gets the current user's email address.
-			$user_info	= get_userdata( get_current_user_id() );
+			$user_ID		= get_current_user_id();
+			$user_info	= get_userdata( $user_ID );
 			$user_email	= $user_info->user_email;
 
 		}
@@ -34,9 +35,11 @@ function get_scorecard_results( $user_email = '' ) {
 		);
 
 		$search_criteria_v2[ 'field_filters' ][] = array(
-			'key'		=> 1, // Deliberately, 1 is the email field ID in both v2 forms.
-			'value' => $user_email,
+			'key'		=> array( 1, 2 ), // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
+			'value' => array( $user_ID, $user_email ),
 		);
+
+		$search_criteria_v2[ 'field_filters' ][ 'mode' ] = 'any';
 
 		// Sorts scorecard results by the date created, with the most recent first.
 		$sorting = array(
