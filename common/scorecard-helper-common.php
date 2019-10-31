@@ -34,9 +34,17 @@ function get_scorecard_results( $user_email = '' ) {
 			'value' => $user_email,
 		);
 
+		/* Doesn't work properly.
 		$search_criteria_v2[ 'field_filters' ][] = array(
 			'key'		=> array( 1, 2 ), // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
 			'value' => array( $user_ID, $user_email ),
+		);
+		*/
+
+		/* Old version, which searches based on email only. */
+		$search_criteria_v2[ 'field_filters' ][] = array(
+			'key'		=> 1, // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
+			'value' => $user_email,
 		);
 
 		$search_criteria_v2[ 'field_filters' ][ 'mode' ] = 'any';
