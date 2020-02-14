@@ -8,18 +8,20 @@ if ( !defined( 'ABSPATH' ) ) exit;
 * @param string $user_email Optional. Accepts a valid email address.
 * Defaults to logged-in user.
 */
-function get_scorecard_results( $user_email = '' ) {
+function get_scorecard_results( $user_email = '', $user_id='' ) {
 
 	if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) :
 
 		$scorecard_results = array();
 
-		if ( empty( $user_email ) ) {
+		if ( empty( $user_id ) ) {
 
-			// Gets the current user's email address.
-			$user_ID		= get_current_user_id();
-			$user_info	= get_userdata( $user_ID );
-			$user_email	= $user_info->user_email;
+			$user_id = get_current_user_id();
+
+			if ( empty( $user_email ) ) {
+				$user_info	= get_userdata( $user_id );
+				$user_email	= $user_info->user_email;
+			}
 
 		}
 
@@ -34,17 +36,20 @@ function get_scorecard_results( $user_email = '' ) {
 			'value' => $user_email,
 		);
 
-		/* Doesn't work properly.
-		$search_criteria_v2[ 'field_filters' ][] = array(
-			'key'		=> array( 1, 2 ), // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
-			'value' => array( $user_ID, $user_email ),
+		$search_criteria_v1[ 'field_filters' ][] = array(
+			'key'		=> 18, // Luckily, 18 is the email field ID in both v1 forms.
+			'value' => $user_email,
 		);
-		*/
 
 		/* Old version, which searches based on email only. */
 		$search_criteria_v2[ 'field_filters' ][] = array(
 			'key'		=> 1, // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
 			'value' => $user_email,
+		);
+
+		$search_criteria_v2[ 'field_filters' ][] = array(
+			'key'		=> 2, // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
+			'value' => $user_id,
 		);
 
 		$search_criteria_v2[ 'field_filters' ][ 'mode' ] = 'any';
