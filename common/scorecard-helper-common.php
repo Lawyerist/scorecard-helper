@@ -8,58 +8,28 @@ if ( !defined( 'ABSPATH' ) ) exit;
 * @param string $user_email Optional. Accepts a valid email address.
 * Defaults to logged-in user.
 */
-function get_scorecard_results( $user_email = '', $user_id='' ) {
+function get_scorecard_results( $user_id = '' ) {
 
 	if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) :
 
 		$scorecard_results = array();
 
-		if ( empty( $user_id ) && empty( $user_email ) ) {
-
-			$user_id		= get_current_user_id();
-			$user_info	= get_userdata( $user_id );
-			$user_email	= $user_info->user_email;
-
-		} elseif ( !empty( $user_id ) ) {
-
-			$user_info	= get_user_by( 'id', $user_id );
-			$user_email	= $user_info->user_email;
-
-		} elseif ( !empty( $user_email ) ) {
-
-			$user_info	= get_user_by( 'email', $user_email );
-			$user_id	= $user_info->ID;
-
+		if ( empty( $user_id ) ) {
+			$user_id = get_current_user_id();
 		}
+
+		$user_info	= get_userdata( $user_id );
+		$user_email	= $user_info->user_email;
 
 		// Defines the Gravity Forms form ids.
 		// 45 & 60 = Small Firm Scorecard; 47 & 61 = Solo Practice Scorecard
-		$form_ids_v1	= array( 45, 47 );
-		$form_ids_v2	= array( 60, 61 );
+		$form_ids	= array( 45, 47, 60, 61 );
 
-		// Searches for all scorecards that have the current user's email address.
-		$search_criteria_v1[ 'field_filters' ][] = array(
-			'key'		=> 18, // Luckily, 18 is the email field ID in both v1 forms.
-			'value' => $user_email,
-		);
-
-		$search_criteria_v1[ 'field_filters' ][] = array(
-			'key'		=> 18, // Luckily, 18 is the email field ID in both v1 forms.
-			'value' => $user_email,
-		);
-
-		/* Old version, which searches based on email only. */
-		$search_criteria_v2[ 'field_filters' ][] = array(
-			'key'		=> 1, // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
-			'value' => $user_email,
-		);
-
-		$search_criteria_v2[ 'field_filters' ][] = array(
-			'key'		=> 2, // Deliberately, 1 and 2 are the email and user ID field IDs in both v2 forms.
+		// Searches for all scorecards that have the current user's ID.
+		$search_criteria[ 'field_filters' ][] = array(
+			'key'		=> created_by,
 			'value' => $user_id,
 		);
-
-		$search_criteria_v2[ 'field_filters' ][ 'mode' ] = 'any';
 
 		// Sorts scorecard results by the date created, with the most recent first.
 		$sorting = array(
@@ -67,12 +37,8 @@ function get_scorecard_results( $user_email = '', $user_id='' ) {
 			'direction'		=> 'DESC',
 		);
 
-		// Gets all the scorecards for the given $user_email.
-		$entries_v1 = GFAPI::get_entries( $form_ids_v1, $search_criteria_v1, $sorting );
-		$entries_v2 = GFAPI::get_entries( $form_ids_v2, $search_criteria_v2, $sorting );
-
-		$entries = array_merge( $entries_v2, $entries_v1 );
-		// The order is important so the entries sort properly by date.
+		// Gets all the scorecards for the given user ID.
+		$entries = GFAPI::get_entries( $form_ids, $search_criteria, $sorting );
 
 		if ( !empty( $entries ) ) {
 
@@ -150,7 +116,7 @@ function get_scorecard_results( $user_email = '', $user_id='' ) {
 					'entry_id'		=> $entry_id,
 					'form_id'			=> $form_id,
 					'grade'				=> $scorecard_result[ 'grade' ],
-					'percentage'	=> $scorecard_result[ 'percentage' ],
+					'percentage'	=> round( $scorecard_result[ 'percentage' ] ),
 					'version'			=> $scorecard_result[ 'version' ],
 					'date'				=> $entry[ 'date_created' ],
 				) );

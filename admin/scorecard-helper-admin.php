@@ -11,139 +11,201 @@ function scorecard_admin_reporting_menu() {
 add_action( 'admin_menu', 'scorecard_admin_reporting_menu' );
 
 
-// Outputs the reports on the page.
-function scorecard_admin_reporting() {
+// Get Active Labsters
+function scorecard_get_active_labsters() {
 
-	$this_page_url	= menu_page_url( 'scorecard', false );
+	$args = array(
+		'post_type'				=> 'wc_user_membership',
+		'post_status'			=> 'wcm-active',
+		'post_parent'			=> 223685,
+		'posts_per_page'	=> -1,
+	);
 
-	echo '<div class="wrap">';
+	$labster_query = new WP_Query( $args );
 
-	// Checks to see if an email address was provided in the URL.
-	if ( isset( $_GET[ 'email' ] ) ) :
+	if ( $labster_query->have_posts() ) :
 
-		$user_email	= $_GET[ 'email' ];
-		$user_info	= get_user_by( 'email', $user_email );
+		$labsters	= array();
 
-		echo '<h1 class="wp-heading-inline">Small Firm Scorecard Report: ' . $user_info->first_name . ' ' . $user_info->last_name . '</h1>';
+		while ( $labster_query->have_posts() ) : $labster_query->the_post();
 
-		echo '<table class="widefat">';
-			echo '<thead>';
-				echo '<tr>';
-					echo '<th>Grade</th>';
-					echo '<th>Date</th>';
-					echo '<th>Version</th>';
-					echo '<th>More</th>';
-				echo '</tr>';
-			echo '</thead>';
-			echo '<tbody>';
+			array_push( $labsters, array(
+				'id'						=> get_the_author_meta( 'ID' ),
+				'email'					=> get_the_author_meta( 'user_email' ),
+				'first_name'		=> get_the_author_meta( 'user_firstname' ),
+				'last_name'			=> get_the_author_meta( 'user_lastname' ),
+			) );
 
-				$scorecard_results = get_scorecard_results( $user_email );
+		endwhile; wp_reset_postdata();
 
-				foreach ( $scorecard_results as $scorecard_result ) {
+		// Sorts $labsters[] by last name.
+		usort( $labsters, function( $a, $b ) {
+			return $a[ 'last_name' ] <=> $b[ 'last_name' ];
+		});
 
-					$scorecard_id				= $scorecard_result[ 'entry_id' ];
-					$form_id						= $scorecard_result[ 'form_id' ];
-					$scorecard_grade		= $scorecard_result[ 'grade' ];
-					$scorecard_score		= $scorecard_result[ 'percentage' ];
-					$scorecard_date			= date_format( date_create( $scorecard_result[ 'date' ] ), 'M. j, Y' );
-					$scorecard_version	= $scorecard_result[ 'version' ];
-
-					$gf_entries_url			= menu_page_url( 'gf_entries', false );
-
-					echo '<tr>';
-						echo '<td><strong>' . $scorecard_grade . '</strong> (' . round( $scorecard_score ) . '%)</td>';
-						echo '<td>' . $scorecard_date . '</td>';
-						echo '<td>' . $scorecard_version . '</td>';
-						echo '<td><a href="' . $gf_entries_url. '&view=entry&id=' . $form_id . '&lid=' . $scorecard_id . '">See Scorecard</a></td>';
-					echo '</tr>';
-
-				}
-
-			echo '<tbody>';
-		echo '</table>';
+		return $labsters;
 
 	else :
 
-		echo '<h1 class="wp-heading-inline">Small Firm Scorecard Report: Labsters</h1>';
-
-		echo '<form action="' . $this_page_url . '" method="GET">';
-			echo '<p class="search-box">';
-				echo '<input type="hidden" value="scorecard" name="page">';
-				echo '<label for="email" class="screen-reader-text">Search users:</label>';
-				echo '<input id="email" type="email" placeholder="Enter email address" name="email">';
-				echo '<input class="button" type="submit" value="Search Users">';
-			echo '</p>';
-		echo '</form>';
-
-		echo '<table class="widefat">';
-			echo '<thead>';
-				echo '<tr>';
-					echo '<th>Name</th>';
-					echo '<th>Initial Grade</th>';
-					echo '<th>Current Grade</th>';
-					echo '<th>Last Updated</th>';
-					echo '<th>More</th>';
-				echo '</tr>';
-			echo '</thead>';
-			echo '<tbody>';
-
-				$labsters						= get_active_labsters();
-				$scorecard_results	= array();
-
-				foreach ( $labsters as $labster ) {
-
-					$scorecard_results = get_scorecard_results( $labster[ 'email' ] );
-
-					if ( !empty( $scorecard_results ) ) {
-
-						// This can be removed after we upgrade to PHP 7.3.
-						if ( !function_exists( 'array_key_last' ) ) {
-
-							function array_key_last($array) {
-
-								if ( !is_array( $array ) || empty( $array ) ) {
-									return NULL;
-								}
-
-								return array_keys( $array )[ count( $array ) - 1 ];
-
-							}
-
-						}
-
-						$first_scorecard_key		= array_key_last( $scorecard_results );
-						$first_scorecard_grade	= $scorecard_results[ $first_scorecard_key ][ 'grade' ];
-						$first_scorecard_score	= $scorecard_results[ $first_scorecard_key ][ 'percentage' ];
-
-						$last_scorecard_grade		= $scorecard_results[ 0 ][ 'grade' ];
-						$last_scorecard_score		= $scorecard_results[ 0 ][ 'percentage' ];
-						$last_scorecard_version	= $scorecard_results[ 0 ][ 'version' ];
-						$last_scorecard_date		= date_format( date_create( $scorecard_results[ 0 ][ 'date' ] ), 'M. j, Y' );
-						$total_scorecards				= count( $scorecard_results );
-
-						echo '<tr>';
-							echo '<td>' . $labster[ 'last_name' ] . ', ' . $labster[ 'first_name' ] . '</td>';
-							echo '<td>';
-								if ( !$first_scorecard_key == 0 ) {
-									echo $first_scorecard_grade . ' (' . $first_scorecard_score . '%)';
-								} else {
-									echo '';
-								}
-							echo '</td>';
-							echo '<td><strong>' . $last_scorecard_grade . '</strong> (' . round( $last_scorecard_score ) . '%)</td>';
-							echo '<td>' . $last_scorecard_date . '</td>';
-							echo '<td><a href="' . $this_page_url . '&email=' . $labster[ 'email' ] . '">See history</a> (' . $total_scorecards . ')</td>';
-						echo '</tr>';
-
-					}
-
-				}
-
-			echo '<tbody>';
-		echo '</table>';
+		return;
 
 	endif;
 
-	echo '</div>'; // Close .wrap
+}
+
+
+// Outputs the reports on the page.
+function scorecard_admin_reporting() {
+
+	?>
+
+	<div class="wrap">
+
+		<?php
+
+		// Checks to see if an email address was provided in the URL.
+		if ( isset( $_GET[ 'user_email' ] ) ) :
+
+			$user_email	= $_GET[ 'user_email' ];
+			$user_info	= get_user_by( 'email', $user_email );
+
+			?>
+
+			<h1 class="wp-heading-inline">Small Firm Scorecard Report: <?php echo $user_info->first_name . ' ' . $user_info->last_name; ?></h1>
+
+			<table class="widefat">
+				<thead>
+					<tr>
+						<th>Grade</th>
+						<th>Date</th>
+						<th>Version</th>
+						<th>More</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<?php
+
+					$scorecard_results = get_scorecard_results( $user_info->ID );
+
+					foreach ( $scorecard_results as $scorecard_result ) {
+
+						$scorecard_id				= $scorecard_result[ 'entry_id' ];
+						$form_id						= $scorecard_result[ 'form_id' ];
+						$scorecard_grade		= $scorecard_result[ 'grade' ];
+						$scorecard_score		= $scorecard_result[ 'percentage' ];
+						$scorecard_date			= date_format( date_create( $scorecard_result[ 'date' ] ), 'M. j, Y' );
+						$scorecard_version	= $scorecard_result[ 'version' ];
+
+						?>
+
+						<tr>
+							<td><strong><?php echo $scorecard_grade; ?></strong> (<?php echo $scorecard_score; ?>%)</td>
+							<td><?php echo $scorecard_date; ?></td>
+							<td><?php echo $scorecard_version; ?></td>
+							<td><a href="<?php menu_page_url( 'gf_entries' ); ?>&view=entry&id=<?php echo $form_id; ?>&lid=<?php echo $scorecard_id; ?>">See Scorecard</a></td>
+						</tr>
+
+						<?php
+
+					}
+
+					?>
+
+				<tbody>
+			</table>
+
+			<?php
+
+		else :
+
+			?>
+
+			<h1 class="wp-heading-inline">Small Firm Scorecard Report: Labsters</h1>
+
+			<form action="<?php menu_page_url( 'scorecard' ); ?>" method="GET">
+				<p class="search-box">
+					<input type="hidden" value="scorecard" name="page">
+					<label for="email" class="screen-reader-text">Search users:</label>
+					<input id="email" type="email" placeholder="Enter email address" name="email">
+					<input class="button" type="submit" value="Search Users">
+				</p>
+			</form>
+
+			<table class="widefat">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Initial Grade</th>
+						<th>Current Grade</th>
+						<th>Last Updated</th>
+						<th>More</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<?php
+
+					$labsters						= scorecard_get_active_labsters();
+					$scorecard_results	= array();
+
+					foreach ( $labsters as $labster ) {
+
+						$scorecard_results = get_scorecard_results( $labster[ 'id' ] );
+
+						if ( !empty( $scorecard_results ) ) {
+
+							$first_scorecard_key		= array_key_last( $scorecard_results );
+							$first_scorecard_grade	= $scorecard_results[ $first_scorecard_key ][ 'grade' ];
+							$first_scorecard_score	= $scorecard_results[ $first_scorecard_key ][ 'percentage' ];
+
+							$last_scorecard_grade		= $scorecard_results[ 0 ][ 'grade' ];
+							$last_scorecard_score		= $scorecard_results[ 0 ][ 'percentage' ];
+							$last_scorecard_version	= $scorecard_results[ 0 ][ 'version' ];
+							$last_scorecard_date		= date_format( date_create( $scorecard_results[ 0 ][ 'date' ] ), 'M. j, Y' );
+							$total_scorecards				= count( $scorecard_results );
+
+							?>
+
+							<tr>
+								<td><?php echo $labster[ 'last_name' ] . ', ' . $labster[ 'first_name' ]; ?></td>
+								<td>
+
+									<?php
+
+									if ( !$first_scorecard_key == 0 ) {
+										echo $first_scorecard_grade . ' (' . $first_scorecard_score . '%)';
+									} else {
+										echo '';
+									}
+
+									?>
+
+								</td>
+								<td><strong><?php echo $last_scorecard_grade; ?></strong> (<?php echo $last_scorecard_score; ?>%)</td>
+								<td><?php echo $last_scorecard_date; ?></td>
+								<td><a href="<?php menu_page_url( 'scorecard' ); ?>&user_email=<?php echo $labster[ 'email' ]; ?>">See history</a> (<?php echo $total_scorecards; ?>)</td>
+							</tr>
+
+							<?php
+
+						}
+
+					}
+
+					?>
+
+				<tbody>
+			</table>
+
+			<?php
+
+		endif;
+
+		?>
+
+	</div><!-- Close .wrap ?>
+
+	<?php
 
 }
