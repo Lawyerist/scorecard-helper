@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. The format 
 
 
 ## [Unreleased]
+- Update existing scorecard functions to get scorecards based on user ID rather than email address, which can change.
 
 
 ## [1.0.0] - 2020-02-21
