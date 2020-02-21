@@ -14,14 +14,21 @@ function get_scorecard_results( $user_email = '', $user_id='' ) {
 
 		$scorecard_results = array();
 
-		if ( empty( $user_id ) ) {
+		if ( empty( $user_id ) && empty( $user_email ) ) {
 
-			$user_id = get_current_user_id();
+			$user_id		= get_current_user_id();
+			$user_info	= get_userdata( $user_id );
+			$user_email	= $user_info->user_email;
 
-			if ( empty( $user_email ) ) {
-				$user_info	= get_userdata( $user_id );
-				$user_email	= $user_info->user_email;
-			}
+		} elseif ( !empty( $user_id ) ) {
+
+			$user_info	= get_user_by( 'id', $user_id );
+			$user_email	= $user_info->user_email;
+
+		} elseif ( !empty( $user_email ) ) {
+
+			$user_info	= get_user_by( 'email', $user_email );
+			$user_id	= $user_info->ID;
 
 		}
 

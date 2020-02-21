@@ -2,8 +2,6 @@
 
 if ( !defined( 'ABSPATH' ) ) exit;
 
-// Set permissions!!!
-
 
 // Adds a page to the Users menu.
 function scorecard_admin_reporting_menu() {
