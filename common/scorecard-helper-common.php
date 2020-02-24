@@ -146,7 +146,7 @@ function get_financial_scorecard_results( $user_id = '' ) {
 	$form_ids	= 63;
 
 	$search_criteria[ 'field_filters' ][] = array(
-		'key'		=> created_by,
+		'key'		=> 'created_by',
 		'value' => $user_id,
 	);
 
@@ -163,8 +163,28 @@ function get_financial_scorecard_results( $user_id = '' ) {
 
 			// Adds a new sub-array for each scorecard.
 			$scorecard_results[] = array(
-				'entry_id'		=> $entry[ 'id' ],
-				'date'				=> $entry[ 'date_created' ],
+				'entry_id'					=> $entry[ 'id' ],
+				'date'							=> $entry[ 'date_created' ],
+				'reporting_period'	=> array(
+					'start_date'			=> $entry[ 1 ],
+					'end_date'				=> $entry[ 2 ],
+				),
+				'revenue'						=> array(
+					'fee_income'			=> $entry[ 101 ],
+					'other_income'		=> $entry[ 102 ],
+				),
+				'expenses'					=> array(
+					'owner_comp'			=> $entry[ 201 ],
+					'salaries'				=> $entry[ 202 ],
+					'operating'				=> $entry[ 203 ],
+				),
+				'cash_credit'				=> array(
+					'cash_on_hand'		=> $entry[ 301 ],
+					'unsecured_debt'	=> $entry[ 302 ],
+				),
+				'realization'				=> array(
+					'real_rate'				=> $entry[ 401 ],
+				),
 			);
 
 		}
