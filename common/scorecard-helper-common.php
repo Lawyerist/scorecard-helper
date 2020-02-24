@@ -24,7 +24,7 @@ function get_scorecard_results( $user_id = '' ) {
 	$form_ids	= array( 45, 47, 60, 61 );
 
 	$search_criteria[ 'field_filters' ][] = array(
-		'key'		=> created_by,
+		'key'		=> 'created_by',
 		'value' => $user_id,
 	);
 
