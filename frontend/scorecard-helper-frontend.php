@@ -2,10 +2,9 @@
 
 if ( !defined( 'ABSPATH' ) ) exit;
 
-/*------------------------------
-Insider Dashboard: Small Firm Scorecard
-------------------------------*/
-
+/**
+* Small Firm Dashboard: Small Firm Scorecard
+*/
 function scorecard_results_graph() {
 
 	$scorecard_results = get_scorecard_results();
@@ -14,16 +13,16 @@ function scorecard_results_graph() {
 
 		ob_start();
 
-			echo '<div id="dashboard-scorecard-widget" class="card">';
+			?>
 
-			echo '<p class="card-label">Small Firm Scorecard</p>';
+			<div id="dashboard-scorecard-widget" class="card">
+				<p class="card-label">Small Firm Scorecard</p>
+				<p class="dashboard-widget-note">We don't have a score for you yet.</p>
+				<p class="dashboard-widget-note">The Small Firm Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>
+				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>
+			</div>
 
-				echo '<p class="dashboard-widget-note">We don\'t have a score for you yet.</p>';
-				echo '<p class="dashboard-widget-note">The Small Firm Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>';
-
-				echo '<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>';
-
-			echo '</div>'; // Close #dashboard-scorecard-widget
+			<?php
 
 		$scorecard_graph = ob_get_clean();
 
@@ -37,72 +36,87 @@ function scorecard_results_graph() {
 			// newest from left to right.
 			$scorecard_results = array_reverse( $scorecard_results );
 
-			$col_width = 100 / count( $scorecard_results );
+			if ( count( $scorecard_results ) > 8 ) {
+				$trim								= count( $scorecard_results ) - 8;
+				$scorecard_results	= array_slice( $scorecard_results, $trim );
+			}
 
-			echo '<div id="dashboard-scorecard-widget" class="card">';
+			$num_results				= count( $scorecard_results );
 
-			echo '<p class="card-label">Small Firm Scorecard</p>';
+			?>
 
-			echo '<div class="scorecard-results-wrapper">';
+			<div id="dashboard-scorecard-widget" class="card">
+				<p class="card-label">Small Firm Scorecard</p>
+				<div class="scorecard-results-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-				foreach ( $scorecard_results as $scorecard_result ) {
+					<?php
 
-					$this_col_year = date_format( date_create( $scorecard_result[ 'date' ] ), 'Y' );
-					$col_height	= $scorecard_result[ 'percentage' ];
+					foreach ( $scorecard_results as $scorecard_result ) {
 
-					if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
+						$this_col_year = date_format( date_create( $scorecard_result[ 'date' ] ), 'Y' );
+						$col_height	= $scorecard_result[ 'percentage' ];
 
-						$year						= $this_col_year;
-						$prev_col_year	= date_format( date_create( $scorecard_result[ 'date' ] ), 'Y' );
+						if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
 
-						$add_border			= ' style="border-left: 1px solid #ddd;"';
+							$year						= $this_col_year;
+							$prev_col_year	= date_format( date_create( $scorecard_result[ 'date' ] ), 'Y' );
 
-					} else {
+							$add_border			= ' style="border-left: 1px solid #ddd;"';
 
-						$year				= '&nbsp;';
-						$add_border	= '';
+						} else {
+
+							$year				= '&nbsp;';
+							$add_border	= '';
+
+						}
+
+						?>
+
+						<div class="scorecard-result-wrapper">
+							<div class="scorecard-year"<?php echo $add_border; ?>><?php echo $year; ?></div>
+							<div class="scorecard-month-day"><?php echo date_format( date_create( $scorecard_result[ 'date' ] ), 'n/d' ); ?></div>
+							<div class="scorecard-bar-wrapper">
+								<?php echo '<div class="scorecard-bar" style="height: ' . $col_height/10 . 'rem;" title="On ' . date_format( date_create( $scorecard_result[ 'date' ] ), 'F j, Y' ) . ', you gave yourself ' . $scorecard_result[ 'percentage' ] . '% on ' . $scorecard_result[ 'version' ] . '."></div>'; ?>
+							</div>
+							<div class="scorecard-grade"><strong><?php echo $scorecard_result[ 'grade' ]; ?></strong></div>
+							<div class="scorecard-percentage"><?php echo round( $scorecard_result[ 'percentage' ] ); ?>%</div>
+						</div>
+
+						<?php
 
 					}
 
-					echo '<div class="scorecard-result-wrapper" style="width: ' . $col_width . '%;">';
+					?>
 
-						echo '<div class="scorecard-year"' . $add_border . '>' . $year . '</div>';
-						echo '<div class="scorecard-month-day">' . date_format( date_create( $scorecard_result[ 'date' ] ), 'n/d' ) . '</div>';
+				</div>
 
-						echo '<div class="scorecard-bar-wrapper">';
-							echo '<div class="scorecard-bar" style="height: ' . $col_height/10 . 'rem;" title="On ' . date_format( date_create( $scorecard_result[ 'date' ] ), 'F j, Y' ) . ', you gave yourself ' . $scorecard_result[ 'percentage' ] . '% on ' . $scorecard_result[ 'version' ] . '."></div>';
-						echo '</div>';
+				<p class="dashboard-widget-note">We recommend updating your score every three months, and no less than once a year.</p>
 
-						echo '<div class="scorecard-grade"><strong>' . $scorecard_result[ 'grade' ] . '</strong></div>';
-						echo '<div class="scorecard-percentage">' . round( $scorecard_result[ 'percentage' ] ) . '%</div>';
+				<?php
 
-					echo '</div>';
+				switch ( $last_version ) {
+
+					case $last_version == 45:
+					case $last_version == 60:
+
+						$scorecard_url = 'https://lawyerist.com/scorecard/small-firm-scorecard/';
+						break;
+
+						case $last_version == 47:
+						case $last_version == 61:
+
+						$scorecard_url = 'https://lawyerist.com/scorecard/solo-practice-scorecard/';
+						break;
 
 				}
 
-			echo '</div>'; // Close #dashboard-scorecard-widget-frame
+				?>
 
-			echo '<p class="dashboard-widget-note">We recommend updating your score every three months, and no less than once a year.</p>';
+				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="<?php echo $scorecard_url; ?>">Update My Score</a></p>
 
-			switch ( $last_version ) {
+			</div>
 
-				case $last_version == 45:
-				case $last_version == 60:
-
-					$scorecard_url = 'https://lawyerist.com/scorecard/small-firm-scorecard/';
-					break;
-
-					case $last_version == 47:
-					case $last_version == 61:
-
-					$scorecard_url = 'https://lawyerist.com/scorecard/solo-practice-scorecard/';
-					break;
-
-			}
-
-			echo '<p align="center" class="remove_bottom"><a class="button remove_bottom" href="' . $scorecard_url . '">Update My Score</a></p>';
-
-			echo '</div>'; // Close #dashboard-scorecard-widget
+			<?php
 
 		$scorecard_graph = ob_get_clean();
 
@@ -110,4 +124,12 @@ function scorecard_results_graph() {
 
 	return $scorecard_graph;
 
+}
+
+
+/**
+* Small Firm Dashboard: Financial Scorecard
+*/
+function financial_scorecard_graph() {
+	
 }
