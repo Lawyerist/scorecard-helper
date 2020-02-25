@@ -5,56 +5,55 @@ if ( !defined( 'ABSPATH' ) ) exit;
 /**
 * Assembles a bar to be used in a bar graph.
 */
-function render_graph_col( $args = array(
-	'year'							=> null,
-	'result_top_label'	=> null,
-	'value'							=> null,
-	'value_type'				=> 'percent',
-	'title'							=> '',
-	'bottom_label'			=> null,
-	'bottom_sub_label'	=> null,
-) ) {
+function render_graph_col( $args = array() ) {
+
+	$defaults = array(
+		'year'							=> null,
+		'result_top_label'	=> null,
+		'value'							=> null,
+		'value_type'				=> 'percent',
+		'title'							=> null,
+		'bottom_label'			=> null,
+		'bottom_sub_label'	=> null,
+	);
+
+	$args = array_merge( $defaults, $args );
+
+	switch ( $args[ 'value_type' ] ) {
+
+		case 'total' :
+			$bar_wrapper_class = ' value-type-total';
+			break;
+
+		case 'percent' :
+		default :
+			$bar_wrapper_class = '';
+			break;
+
+	}
 
 	ob_start();
-
-		switch ( $args[ 'value_type' ] ) {
-
-			case 'total' :
-				$bar_wrapper_class = ' value-type-total';
-				break;
-
-			case 'percent' :
-			default :
-				$bar_wrapper_class = '';
-				break;
-
-		}
-
-		switch ( $args[ 'orientation' ] ) {
-
-			case 'horizontal' :
-				$style = 'width: ' . $args[ 'value' ] . '%;';
-				break;
-
-			case 'vertical' :
-			default :
-				$style = 'height: ' . $args[ 'value' ] . '%;';
-				break;
-
-		}
 
 		?>
 
 		<div class="result-wrapper">
-			<?php if ( $args[ 'year' ] ) { ?><div class="result-year"<?php if ( $args[ 'year' ] !== '&nbsp;' ) { ?> style="border-left: 1px solid #ddd;"<?php } ?>><?php echo $args[ 'year' ]; ?></div><? } ?>
-			<?php if ( $args[ 'result_top_label' ] ) { ?><div class="result-top-label"><?php echo $args[ 'result_top_label' ]; ?></div><? } ?>
+			<?php if ( $args[ 'year' ] ) { ?>
+				<div class="result-year"<?php if ( $args[ 'year' ] !== '&nbsp;' ) { ?> style="border-left: 1px solid #ddd;"<?php } ?>><?php echo $args[ 'year' ]; ?></div>
+			<? } ?>
+			<?php if ( $args[ 'result_top_label' ] ) { ?>
+				<div class="result-top-label"><?php echo $args[ 'result_top_label' ]; ?></div>
+			<? } ?>
 			<?php if ( !is_null( $args[ 'value' ] ) && $args[ 'value' ] !== 0 ) { ?>
 				<div class="bar-wrapper<?php echo $bar_wrapper_class; ?>" title="<?php echo $args[ 'title' ]; ?>">
-					<div class="bar" style="<?php echo $style; ?>"></div>
+					<div class="bar" style="height: <?php echo $args[ 'value' ]; ?>%"></div>
 				</div>
 			<? } ?>
-			<?php if ( $args[ 'bottom_label' ] ) { ?><div class="result-bottom-label"><strong><?php echo $args[ 'bottom_label' ]; ?></strong></div><? } ?>
-			<?php if ( $args[ 'bottom_sub_label' ] ) { ?><div class="result-bottom-sub-label"><?php echo $args[ 'bottom_sub_label' ]; ?></div><? } ?>
+			<?php if ( $args[ 'bottom_label' ] ) { ?>
+				<div class="result-bottom-label"><strong><?php echo $args[ 'bottom_label' ]; ?></strong></div>
+			<? } ?>
+			<?php if ( $args[ 'bottom_sub_label' ] ) { ?>
+				<div class="result-bottom-sub-label"><?php echo $args[ 'bottom_sub_label' ]; ?></div>
+			<? } ?>
 		</div>
 
 		<?php
@@ -215,7 +214,7 @@ function financial_scorecard_graph() {
 					$results	= array_slice( $results, $trim );
 				}
 
-				$num_results = count( $results );
+				$num_results = count( $results ) + 1;
 
 				// Calculate max values for non-percentage values.
 				$max_cash_on_hand		= 0;
@@ -282,6 +281,10 @@ function financial_scorecard_graph() {
 
 					?>
 
+					<div class="result-wrapper">
+						<div class="result-year">&nbsp;</div>
+					</div>
+
 				</div>
 
 				<div class="graph-label">Profit %</div>
@@ -295,7 +298,7 @@ function financial_scorecard_graph() {
 						$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
 						$profit			= $revenue - $expenses;
 
-						$profit_percentage	= round( $profit / $revenue * 100 );
+						$profit_percentage	= number_format( round( $profit / $revenue * 100 ) );
 
 						$bar_args = array(
 							'value'							=> $profit_percentage,
@@ -307,7 +310,15 @@ function financial_scorecard_graph() {
 
 					}
 
+					$revenue		= $results[ 0 ][ 'revenue' ][ 'fee_income' ] + $results[ 0 ][ 'revenue' ][ 'other_income' ];
+					$expenses		= $results[ 0 ][ 'expenses' ][ 'owner_comp' ] + $results[ 0 ][ 'expenses' ][ 'salaries' ] + $results[ 0 ][ 'expenses' ][ 'operating' ];
+					$profit			= $revenue - $expenses;
+
+					$profit_percentage	= number_format( round( $profit / $revenue * 100 ) );
+
 					?>
+
+					<div class="current-result"><?php echo $profit_percentage; ?>%</div>
 
 				</div>
 

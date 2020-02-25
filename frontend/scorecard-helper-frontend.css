@@ -74,3 +74,8 @@
     #small-firm-dashboard .result-bottom-sub-label {
       font-size: 1.2rem;
     }
+
+  #small-firm-dashboard .current-result {
+    align-self: center;
+    font-size: 3.2rem;
+  }
