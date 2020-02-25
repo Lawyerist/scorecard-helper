@@ -86,16 +86,16 @@ function scorecard_admin_reporting() {
 
 					<?php
 
-					$scorecard_results = get_scorecard_results( $user_info->ID );
+					$results = get_scorecard_results( $user_info->ID );
 
-					foreach ( $scorecard_results as $scorecard_result ) {
+					foreach ( $results as $result ) {
 
-						$scorecard_id				= $scorecard_result[ 'entry_id' ];
-						$form_id						= $scorecard_result[ 'form_id' ];
-						$scorecard_grade		= $scorecard_result[ 'grade' ];
-						$scorecard_score		= $scorecard_result[ 'percentage' ];
-						$scorecard_date			= date_format( date_create( $scorecard_result[ 'date' ] ), 'M. j, Y' );
-						$scorecard_version	= $scorecard_result[ 'version' ];
+						$scorecard_id				= $result[ 'entry_id' ];
+						$form_id						= $result[ 'form_id' ];
+						$scorecard_grade		= $result[ 'grade' ];
+						$scorecard_score		= $result[ 'percentage' ];
+						$scorecard_date			= date_format( date_create( $result[ 'date' ] ), 'M. j, Y' );
+						$scorecard_version	= $result[ 'version' ];
 
 						?>
 
@@ -147,23 +147,23 @@ function scorecard_admin_reporting() {
 					<?php
 
 					$labsters						= scorecard_get_active_labsters();
-					$scorecard_results	= array();
+					$results	= array();
 
 					foreach ( $labsters as $labster ) {
 
-						$scorecard_results = get_scorecard_results( $labster[ 'id' ] );
+						$results = get_scorecard_results( $labster[ 'id' ] );
 
-						if ( !empty( $scorecard_results ) ) {
+						if ( !empty( $results ) ) {
 
-							$first_scorecard_key		= array_key_last( $scorecard_results );
-							$first_scorecard_grade	= $scorecard_results[ $first_scorecard_key ][ 'grade' ];
-							$first_scorecard_score	= $scorecard_results[ $first_scorecard_key ][ 'percentage' ];
+							$first_scorecard_key		= array_key_last( $results );
+							$first_scorecard_grade	= $results[ $first_scorecard_key ][ 'grade' ];
+							$first_scorecard_score	= $results[ $first_scorecard_key ][ 'percentage' ];
 
-							$last_scorecard_grade		= $scorecard_results[ 0 ][ 'grade' ];
-							$last_scorecard_score		= $scorecard_results[ 0 ][ 'percentage' ];
-							$last_scorecard_version	= $scorecard_results[ 0 ][ 'version' ];
-							$last_scorecard_date		= date_format( date_create( $scorecard_results[ 0 ][ 'date' ] ), 'M. j, Y' );
-							$total_scorecards				= count( $scorecard_results );
+							$last_scorecard_grade		= $results[ 0 ][ 'grade' ];
+							$last_scorecard_score		= $results[ 0 ][ 'percentage' ];
+							$last_scorecard_version	= $results[ 0 ][ 'version' ];
+							$last_scorecard_date		= date_format( date_create( $results[ 0 ][ 'date' ] ), 'M. j, Y' );
+							$total_scorecards				= count( $results );
 
 							?>
 

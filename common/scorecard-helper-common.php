@@ -17,7 +17,7 @@ function get_scorecard_results( $user_id = '' ) {
 	}
 
 	$user_info					= get_userdata( $user_id );
-	$scorecard_results	= array();
+	$results	= array();
 
 	// Defines variables for the Gravity Forms API.
 	// 45 & 60 = Small Firm Scorecard; 47 & 61 = Solo Practice Scorecard
@@ -49,28 +49,28 @@ function get_scorecard_results( $user_id = '' ) {
 				// Small Firm Scorecard 1.0
 		    case $form_id == 45:
 					$total = 500;
-					$scorecard_result[ 'version' ] = 'Small Firm Scorecard 1.0';
+					$result[ 'version' ] = 'Small Firm Scorecard 1.0';
 
 					break;
 
 				// Small Firm Scorecard 2.0
 				case $form_id == 60:
 		      $total = 500;
-					$scorecard_result[ 'version' ] = 'Small Firm Scorecard 2.0';
+					$result[ 'version' ] = 'Small Firm Scorecard 2.0';
 
 		      break;
 
 				// Solo Practice Scorecard 1.0
 		    case $form_id == 47:
 		      $total = 400;
-					$scorecard_result[ 'version' ] = 'Solo Practice Scorecard 1.0';
+					$result[ 'version' ] = 'Solo Practice Scorecard 1.0';
 
 		      break;
 
 				// Solo Practice Scorecard 2.0
 		    case $form_id == 61:
 		      $total = 420;
-					$scorecard_result[ 'version' ] = 'Solo Practice Scorecard 2.0';
+					$result[ 'version' ] = 'Solo Practice Scorecard 2.0';
 
 		      break;
 
@@ -103,16 +103,16 @@ function get_scorecard_results( $user_id = '' ) {
 
 		  }
 
-			$scorecard_result[ 'percentage' ]	= $score;
-			$scorecard_result[ 'grade' ]			= $grade;
+			$result[ 'percentage' ]	= $score;
+			$result[ 'grade' ]			= $grade;
 
 			// Adds a new sub-array for the scorecard.
-			$scorecard_results[] = array(
+			$results[] = array(
 				'entry_id'		=> $entry_id,
 				'form_id'			=> $form_id,
-				'grade'				=> $scorecard_result[ 'grade' ],
-				'percentage'	=> round( $scorecard_result[ 'percentage' ] ),
-				'version'			=> $scorecard_result[ 'version' ],
+				'grade'				=> $result[ 'grade' ],
+				'percentage'	=> round( $result[ 'percentage' ] ),
+				'version'			=> $result[ 'version' ],
 				'date'				=> $entry[ 'date_created' ],
 			);
 
@@ -120,7 +120,7 @@ function get_scorecard_results( $user_id = '' ) {
 
 	}
 
-	return $scorecard_results;
+	return $results;
 
 }
 
@@ -139,8 +139,8 @@ function get_financial_scorecard_results( $user_id = '' ) {
 		$user_id = get_current_user_id();
 	}
 
-	$user_info					= get_userdata( $user_id );
-	$scorecard_results	= array();
+	$user_info	= get_userdata( $user_id );
+	$results		= array();
 
 	// Defines variables for the Gravity Forms API.
 	$form_ids	= 63;
@@ -150,10 +150,7 @@ function get_financial_scorecard_results( $user_id = '' ) {
 		'value' => $user_id,
 	);
 
-	$sorting = array(
-		'key'					=> 'date_created',
-		'direction'		=> 'DESC',
-	);
+	$sorting = '';
 
 	$entries = GFAPI::get_entries( $form_ids, $search_criteria, $sorting );
 
@@ -162,7 +159,7 @@ function get_financial_scorecard_results( $user_id = '' ) {
 		foreach ( $entries as $entry ) {
 
 			// Adds a new sub-array for each scorecard.
-			$scorecard_results[] = array(
+			$results[] = array(
 				'entry_id'					=> $entry[ 'id' ],
 				'date'							=> $entry[ 'date_created' ],
 				'reporting_period'	=> array(
@@ -182,8 +179,9 @@ function get_financial_scorecard_results( $user_id = '' ) {
 					'cash_on_hand'		=> $entry[ 301 ],
 					'unsecured_debt'	=> $entry[ 302 ],
 				),
-				'realization'				=> array(
-					'real_rate'				=> $entry[ 401 ],
+				'receivables'				=> array(
+					'ar_over_30'			=> $entry[ 401 ],
+					'real_rate'				=> $entry[ 402 ],
 				),
 			);
 
@@ -191,6 +189,11 @@ function get_financial_scorecard_results( $user_id = '' ) {
 
 	}
 
-	return $scorecard_results;
+	// Sort by end date, from oldest to newest.
+	usort( $results, function( $a, $b ) {
+    return $a[ 'reporting_period' ][ 'end_date' ] <=> $b[ 'reporting_period' ][ 'end_date' ];
+  });
+
+	return $results;
 
 }

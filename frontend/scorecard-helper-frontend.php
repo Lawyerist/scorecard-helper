@@ -3,126 +3,181 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 /**
+* Assembles a bar to be used in a bar graph.
+*/
+function render_graph_col( $args = array(
+	'year'							=> null,
+	'result_top_label'	=> null,
+	'value'							=> null,
+	'value_type'				=> 'percent',
+	'title'							=> '',
+	'bottom_label'			=> null,
+	'bottom_sub_label'	=> null,
+) ) {
+
+	ob_start();
+
+		switch ( $args[ 'value_type' ] ) {
+
+			case 'total' :
+				$bar_wrapper_class = ' value-type-total';
+				break;
+
+			case 'percent' :
+			default :
+				$bar_wrapper_class = '';
+				break;
+
+		}
+
+		switch ( $args[ 'orientation' ] ) {
+
+			case 'horizontal' :
+				$style = 'width: ' . $args[ 'value' ] . '%;';
+				break;
+
+			case 'vertical' :
+			default :
+				$style = 'height: ' . $args[ 'value' ] . '%;';
+				break;
+
+		}
+
+		?>
+
+		<div class="result-wrapper">
+			<?php if ( $args[ 'year' ] ) { ?><div class="result-year"<?php if ( $args[ 'year' ] !== '&nbsp;' ) { ?> style="border-left: 1px solid #ddd;"<?php } ?>><?php echo $args[ 'year' ]; ?></div><? } ?>
+			<?php if ( $args[ 'result_top_label' ] ) { ?><div class="result-top-label"><?php echo $args[ 'result_top_label' ]; ?></div><? } ?>
+			<?php if ( !is_null( $args[ 'value' ] ) && $args[ 'value' ] !== 0 ) { ?>
+				<div class="bar-wrapper<?php echo $bar_wrapper_class; ?>" title="<?php echo $args[ 'title' ]; ?>">
+					<div class="bar" style="<?php echo $style; ?>"></div>
+				</div>
+			<? } ?>
+			<?php if ( $args[ 'bottom_label' ] ) { ?><div class="result-bottom-label"><strong><?php echo $args[ 'bottom_label' ]; ?></strong></div><? } ?>
+			<?php if ( $args[ 'bottom_sub_label' ] ) { ?><div class="result-bottom-sub-label"><?php echo $args[ 'bottom_sub_label' ]; ?></div><? } ?>
+		</div>
+
+		<?php
+
+	return ob_get_clean();
+
+}
+
+
+/**
 * Small Firm Dashboard: Small Firm Scorecard
 */
 function scorecard_results_graph() {
 
-	$scorecard_results = get_scorecard_results();
+	$results = get_scorecard_results();
 
-	if ( empty( $scorecard_results ) ) {
+	ob_start();
 
-		ob_start();
+		?>
 
-			?>
-
-			<div id="dashboard-scorecard-widget" class="card">
-				<p class="card-label">Small Firm Scorecard</p>
-				<p class="dashboard-widget-note">We don't have a score for you yet.</p>
-				<p class="dashboard-widget-note">The Small Firm Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>
-				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>
-			</div>
+		<div id="dashboard-scorecard-widget" class="dashboard-card card">
+			<div class="card-label">Small Firm Scorecard</div>
 
 			<?php
 
-		$scorecard_graph = ob_get_clean();
+			if ( empty( $results ) ) {
 
-	} else {
+				?>
 
-		ob_start();
+				<p class="dashboard-widget-note">We don't have a score for you yet.</p>
+				<p class="dashboard-widget-note">The Small Firm Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>
+				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>
 
-			$last_version = $scorecard_results[ 0 ][ 'form_id' ];
+				<?php
 
-			// Reverses the order of the array so that the results display oldest to
-			// newest from left to right.
-			$scorecard_results = array_reverse( $scorecard_results );
+			} else {
 
-			if ( count( $scorecard_results ) > 8 ) {
-				$trim								= count( $scorecard_results ) - 8;
-				$scorecard_results	= array_slice( $scorecard_results, $trim );
-			}
+				$last_version = $results[ 0 ][ 'form_id' ];
 
-			$num_results				= count( $scorecard_results );
+				// Reverses the order of the array so that the results display oldest to
+				// newest from left to right.
+				$results = array_reverse( $results );
 
-			?>
+				if ( count( $results ) > 8 ) {
+					$trim								= count( $results ) - 8;
+					$results	= array_slice( $results, $trim );
+				}
 
-			<div id="dashboard-scorecard-widget" class="card">
-				<p class="card-label">Small Firm Scorecard</p>
-				<div class="scorecard-results-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+				$num_results = count( $results );
 
-					<?php
+				?>
 
-					foreach ( $scorecard_results as $scorecard_result ) {
+					<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-						$this_col_year = date_format( date_create( $scorecard_result[ 'date' ] ), 'Y' );
-						$col_height	= $scorecard_result[ 'percentage' ];
+						<?php
 
-						if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
+						foreach ( $results as $result ) {
 
-							$year						= $this_col_year;
-							$prev_col_year	= date_format( date_create( $scorecard_result[ 'date' ] ), 'Y' );
+							$this_col_year	= date_format( date_create( $result[ 'date' ] ), 'Y' );
 
-							$add_border			= ' style="border-left: 1px solid #ddd;"';
+							if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
 
-						} else {
+								$year						= $this_col_year;
+								$prev_col_year	= date_format( date_create( $result[ 'date' ] ), 'Y' );
 
-							$year				= '&nbsp;';
-							$add_border	= '';
+							} else {
+
+								$year = '&nbsp;';
+
+							}
+
+							$bar_args = array(
+								'year'							=> $year,
+								'result_top_label'	=> date_format( date_create( $result[ 'date' ] ), 'n/d' ),
+								'value'							=> $result[ 'percentage' ],
+								'title'							=> 'On ' . date_format( date_create( $result[ 'date' ] ), 'F j, Y' ) . ', you gave yourself ' . $result[ 'percentage' ] . '% on ' . $result[ 'version' ] . '.',
+								'bottom_label'			=> $result[ 'grade' ],
+								'bottom_sub_label'	=> $result[ 'percentage' ] . '%',
+							);
+
+							echo render_graph_col( $bar_args );
 
 						}
 
 						?>
 
-						<div class="scorecard-result-wrapper">
-							<div class="scorecard-year"<?php echo $add_border; ?>><?php echo $year; ?></div>
-							<div class="scorecard-month-day"><?php echo date_format( date_create( $scorecard_result[ 'date' ] ), 'n/d' ); ?></div>
-							<div class="scorecard-bar-wrapper">
-								<?php echo '<div class="scorecard-bar" style="height: ' . $col_height/10 . 'rem;" title="On ' . date_format( date_create( $scorecard_result[ 'date' ] ), 'F j, Y' ) . ', you gave yourself ' . $scorecard_result[ 'percentage' ] . '% on ' . $scorecard_result[ 'version' ] . '."></div>'; ?>
-							</div>
-							<div class="scorecard-grade"><strong><?php echo $scorecard_result[ 'grade' ]; ?></strong></div>
-							<div class="scorecard-percentage"><?php echo round( $scorecard_result[ 'percentage' ] ); ?>%</div>
-						</div>
+					</div>
 
-						<?php
+					<p class="dashboard-widget-note">We recommend updating your score every three months, and no less than once a year.</p>
+
+					<?php
+
+					switch ( $last_version ) {
+
+						case $last_version == 45:
+						case $last_version == 60:
+
+							$scorecard_url = 'https://lawyerist.com/scorecard/small-firm-scorecard/';
+							break;
+
+							case $last_version == 47:
+							case $last_version == 61:
+
+							$scorecard_url = 'https://lawyerist.com/scorecard/solo-practice-scorecard/';
+							break;
 
 					}
 
 					?>
 
-				</div>
-
-				<p class="dashboard-widget-note">We recommend updating your score every three months, and no less than once a year.</p>
+					<p align="center" class="remove_bottom"><a class="button remove_bottom" href="<?php echo $scorecard_url; ?>">Update My Score</a></p>
 
 				<?php
 
-				switch ( $last_version ) {
+			}
 
-					case $last_version == 45:
-					case $last_version == 60:
+			?>
 
-						$scorecard_url = 'https://lawyerist.com/scorecard/small-firm-scorecard/';
-						break;
+		</div>
 
-						case $last_version == 47:
-						case $last_version == 61:
+		<?php
 
-						$scorecard_url = 'https://lawyerist.com/scorecard/solo-practice-scorecard/';
-						break;
-
-				}
-
-				?>
-
-				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="<?php echo $scorecard_url; ?>">Update My Score</a></p>
-
-			</div>
-
-			<?php
-
-		$scorecard_graph = ob_get_clean();
-
-	}
-
-	return $scorecard_graph;
+	return ob_get_clean();
 
 }
 
@@ -131,5 +186,250 @@ function scorecard_results_graph() {
 * Small Firm Dashboard: Financial Scorecard
 */
 function financial_scorecard_graph() {
-	
+
+	$results = get_financial_scorecard_results();
+
+	ob_start();
+
+		?>
+
+		<div id="dashboard-financial-scorecard-widget" class="dashboard-card card">
+			<div class="card-label">Financial Scorecard</div>
+
+			<?php
+
+			if ( empty( $results ) ) {
+
+				?>
+
+				<p class="dashboard-widget-note">We don't have any financial metrics for your firm yet.</p>
+				<p class="dashboard-widget-note">The Small Firm Financial Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>
+				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>
+
+				<?php
+
+			} else {
+
+				if ( count( $results ) > 8 ) {
+					$trim			= count( $results ) - 8;
+					$results	= array_slice( $results, $trim );
+				}
+
+				$num_results = count( $results );
+
+				// Calculate max values for non-percentage values.
+				$max_cash_on_hand		= 0;
+				$max_unsecured_debt	= 0;
+				$max_ar_over_30			= 0;
+				$max_real_rate			= 0;
+
+				foreach ( $results as $result ) {
+
+					if ( $max_cash_on_hand < intval( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) ) {
+						$max_cash_on_hand = intval( $result[ 'cash_credit' ][ 'cash_on_hand' ] );
+					}
+
+					if ( $max_unsecured_debt < intval( $result[ 'cash_credit' ][ 'unsecured_debt' ] ) ) {
+						$max_unsecured_debt = intval( $result[ 'cash_credit' ][ 'unsecured_debt' ] );
+					}
+
+					if ( $max_ar_over_30 < intval( $result[ 'receivables' ][ 'ar_over_30' ] ) ) {
+						$max_ar_over_30 = intval( $result[ 'receivables' ][ 'ar_over_30' ] );
+					}
+
+					if ( $max_real_rate < intval( $result[ 'receivables' ][ 'real_rate' ] ) ) {
+						$max_real_rate = intval( $result[ 'receivables' ][ 'real_rate' ] );
+					}
+
+				}
+
+				$max = array(
+					'cash_on_hand'		=> intval( $max_cash_on_hand ),
+					'unsecured_debt'	=> intval( $max_unsecured_debt ),
+					'ar_over_30'			=> intval( $max_ar_over_30 ),
+					'real_rate'				=> intval( $max_real_rate ),
+				);
+
+				?>
+
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+
+						if ( empty( $prev_col_year ) || $this_col_year !== $prev_col_year ) {
+
+							$year						= $this_col_year;
+							$prev_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+
+						} else {
+
+							$year				= '&nbsp;';
+
+						}
+
+						$bar_args = array(
+							'year'							=> $year,
+							'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<div class="graph-label">Profit %</div>
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+						$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
+						$profit			= $revenue - $expenses;
+
+						$profit_percentage	= round( $profit / $revenue * 100 );
+
+						$bar_args = array(
+							'value'							=> $profit_percentage,
+							'title'							=> 'On ' . date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'F j, Y' ) . ', your total revenue was $' . number_format( $revenue ) . ' and your expenses were $' . number_format( $expenses ) . ', for a profit of $' . number_format( $profit ) . '.',
+							'bottom_sub_label'	=> $profit_percentage . '%',
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<div class="graph-label">A/R Over 30</div>
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$bar_args = array(
+							'value'							=> round( $result[ 'receivables' ][ 'ar_over_30' ] / $max[ 'ar_over_30' ] * 100 ),
+							'value_type'				=> 'total',
+							'bottom_sub_label'	=> '$' . number_format( $result[ 'receivables' ][ 'ar_over_30' ] ),
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<div class="graph-label">Cash on Hand</div>
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$bar_args = array(
+							'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
+							'value_type'				=> 'total',
+							'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ),
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<div class="graph-label">Unsecured Debt</div>
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$bar_args = array(
+							'value'							=> round( $result[ 'cash_credit' ][ 'unsecured_debt' ] / $max[ 'unsecured_debt' ] * 100 ),
+							'value_type'				=> 'total',
+							'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'unsecured_debt' ] ),
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<div class="graph-label">Labor %</div>
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$revenue					= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+						$labor_expenses 	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ];
+						$labor_percentage	= round( $labor_expenses / $revenue * 100 );
+
+						$bar_args = array(
+							'value'							=> $labor_percentage,
+							'bottom_sub_label'	=> $labor_percentage . '%',
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<div class="graph-label">Realization Rate</div>
+				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+					<?php
+
+					foreach ( $results as $result ) {
+
+						$real_rate = round( $result[ 'receivables' ][ 'real_rate' ] );
+
+						$bar_args = array(
+							'value'							=> $real_rate,
+							'bottom_sub_label'	=> $real_rate . '%',
+						);
+
+						echo render_graph_col( $bar_args );
+
+					}
+
+					?>
+
+				</div>
+
+				<?php
+
+			}
+
+			?>
+
+		</div>
+
+		<?php
+
+	return ob_get_clean();
+
 }
