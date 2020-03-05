@@ -1,8 +1,10 @@
-/* Small Firm Dashboard Scorecard Widget */
-
 #small-firm-dashboard .dashboard-card {
   margin: 0;
   padding: 2rem;
+}
+
+#dashboard-financial-scorecard-widget .cards {
+  grid-gap: 2rem;
 }
 
 /* Graph Elements */
@@ -10,6 +12,14 @@
 #small-firm-dashboard .graph-wrapper {
   line-height: 1.2;
   margin-bottom: 1.5rem;
+}
+
+#small-firm-dashboard .graph-wrapper.full-width-bars.value-type-total {
+  background-color: unset;
+}
+
+#small-firm-dashboard .graph-wrapper.full-width-bars {
+  grid-column-gap: .2rem;
 }
 
 #small-firm-dashboard .graph-label {
@@ -38,6 +48,7 @@
   #small-firm-dashboard .bar-wrapper {
     background-color: #ddd;
     border-radius: .2rem;
+    box-sizing: border-box;
     height: 10rem;
     margin: 0 auto 1rem auto;
     max-width: 3rem;
@@ -47,12 +58,17 @@
     width: 20%;
   }
 
-    #small-firm-dashboard .bar-wrapper.value-type-total {
+    #dashboard-financial-scorecard-widget .bar-wrapper {
+      height: 3rem;
+    }
+
+    #small-firm-dashboard .value-type-total .bar-wrapper {
       background-color: unset;
     }
 
-    #dashboard-financial-scorecard-widget .bar-wrapper {
-      height: 3rem;
+    #small-firm-dashboard .full-width-bars .bar-wrapper {
+      max-width: unset;
+      width: 100%;
     }
 
     #small-firm-dashboard .bar {

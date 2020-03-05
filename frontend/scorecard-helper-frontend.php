@@ -11,26 +11,13 @@ function render_graph_col( $args = array() ) {
 		'year'							=> null,
 		'result_top_label'	=> null,
 		'value'							=> null,
-		'value_type'				=> 'percent',
 		'title'							=> null,
 		'bottom_label'			=> null,
 		'bottom_sub_label'	=> null,
 	);
 
-	$args = array_merge( $defaults, $args );
-
-	switch ( $args[ 'value_type' ] ) {
-
-		case 'total' :
-			$bar_wrapper_class = ' value-type-total';
-			break;
-
-		case 'percent' :
-		default :
-			$bar_wrapper_class = '';
-			break;
-
-	}
+	$args									= array_merge( $defaults, $args );
+	$bar_wrapper_classes	= array( 'bar-wrapper' );
 
 	ob_start();
 
@@ -44,7 +31,7 @@ function render_graph_col( $args = array() ) {
 				<div class="result-top-label"><?php echo $args[ 'result_top_label' ]; ?></div>
 			<? } ?>
 			<?php if ( !is_null( $args[ 'value' ] ) && $args[ 'value' ] !== 0 ) { ?>
-				<div class="bar-wrapper<?php echo $bar_wrapper_class; ?>" title="<?php echo $args[ 'title' ]; ?>">
+				<div class="<?php echo implode( ' ', $bar_wrapper_classes ); ?>" title="<?php echo $args[ 'title' ]; ?>">
 					<div class="bar" style="height: <?php echo $args[ 'value' ]; ?>%"></div>
 				</div>
 			<? } ?>
@@ -59,6 +46,23 @@ function render_graph_col( $args = array() ) {
 		<?php
 
 	return ob_get_clean();
+
+}
+
+
+function format_years( $this_col_year, $prev_col_year = null ) {
+
+	if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
+
+		$year = $this_col_year;
+
+	} else {
+
+		$year = '&nbsp;';
+
+	}
+
+	return $year;
 
 }
 
@@ -110,20 +114,13 @@ function scorecard_results_graph() {
 
 						<?php
 
+						$prev_col_year = null;
+
 						foreach ( $results as $result ) {
 
 							$this_col_year	= date_format( date_create( $result[ 'date' ] ), 'Y' );
-
-							if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
-
-								$year						= $this_col_year;
-								$prev_col_year	= date_format( date_create( $result[ 'date' ] ), 'Y' );
-
-							} else {
-
-								$year = '&nbsp;';
-
-							}
+							$year						= format_years( $this_col_year, $prev_col_year );
+							$prev_col_year	= $this_col_year;
 
 							$bar_args = array(
 								'year'							=> $year,
@@ -132,6 +129,7 @@ function scorecard_results_graph() {
 								'title'							=> 'On ' . date_format( date_create( $result[ 'date' ] ), 'F j, Y' ) . ', you gave yourself ' . $result[ 'percentage' ] . '% on ' . $result[ 'version' ] . '.',
 								'bottom_label'			=> $result[ 'grade' ],
 								'bottom_sub_label'	=> $result[ 'percentage' ] . '%',
+								'full_width'				=> true,
 							);
 
 							echo render_graph_col( $bar_args );
@@ -214,7 +212,7 @@ function financial_scorecard_graph() {
 					$results	= array_slice( $results, $trim );
 				}
 
-				$num_results = count( $results ) + 1;
+				$num_results = count( $results );
 
 				// Calculate max values for non-percentage values.
 				$max_cash_on_hand		= 0;
@@ -251,183 +249,200 @@ function financial_scorecard_graph() {
 
 				?>
 
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+				<div class="cards">
 
-					<?php
+					<div class="card">
+						<div class="graph-label">Profit %</div>
+						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-					foreach ( $results as $result ) {
+							<?php
 
-						$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+							$prev_col_year = null;
 
-						if ( empty( $prev_col_year ) || $this_col_year !== $prev_col_year ) {
+							foreach ( $results as $result ) {
 
-							$year						= $this_col_year;
-							$prev_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
+								$profit			= $revenue - $expenses;
 
-						} else {
+								$profit_percentage	= number_format( round( $profit / $revenue * 100 ) );
 
-							$year				= '&nbsp;';
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
-						}
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> $profit_percentage,
+									'title'							=> 'On ' . date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'F j, Y' ) . ', your total revenue was $' . number_format( $revenue ) . ' and your expenses were $' . number_format( $expenses ) . ', for a profit of $' . number_format( $profit ) . '.',
+									'bottom_sub_label'	=> $profit_percentage . '%',
+								);
 
-						$bar_args = array(
-							'year'							=> $year,
-							'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
-						);
+								echo render_graph_col( $bar_args );
 
-						echo render_graph_col( $bar_args );
+							}
 
-					}
+							?>
 
-					?>
-
-					<div class="result-wrapper">
-						<div class="result-year">&nbsp;</div>
+						</div>
 					</div>
 
-				</div>
+					<div class="card">
+						<div class="graph-label">A/R Over 30</div>
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-				<div class="graph-label">Profit %</div>
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+							<?php
 
-					<?php
+							$prev_col_year = null;
 
-					foreach ( $results as $result ) {
+							foreach ( $results as $result ) {
 
-						$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
-						$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
-						$profit			= $revenue - $expenses;
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
-						$profit_percentage	= number_format( round( $profit / $revenue * 100 ) );
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> round( $result[ 'receivables' ][ 'ar_over_30' ] / $max[ 'ar_over_30' ] * 100 ),
+									'bottom_sub_label'	=> '$' . number_format( $result[ 'receivables' ][ 'ar_over_30' ] ),
+								);
 
-						$bar_args = array(
-							'value'							=> $profit_percentage,
-							'title'							=> 'On ' . date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'F j, Y' ) . ', your total revenue was $' . number_format( $revenue ) . ' and your expenses were $' . number_format( $expenses ) . ', for a profit of $' . number_format( $profit ) . '.',
-							'bottom_sub_label'	=> $profit_percentage . '%',
-						);
+								echo render_graph_col( $bar_args );
 
-						echo render_graph_col( $bar_args );
+							}
 
-					}
+							?>
 
-					$revenue		= $results[ 0 ][ 'revenue' ][ 'fee_income' ] + $results[ 0 ][ 'revenue' ][ 'other_income' ];
-					$expenses		= $results[ 0 ][ 'expenses' ][ 'owner_comp' ] + $results[ 0 ][ 'expenses' ][ 'salaries' ] + $results[ 0 ][ 'expenses' ][ 'operating' ];
-					$profit			= $revenue - $expenses;
+						</div>
+					</div>
 
-					$profit_percentage	= number_format( round( $profit / $revenue * 100 ) );
+					<div class="card">
+						<div class="graph-label">Cash on Hand</div>
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-					?>
+							<?php
 
-					<div class="current-result"><?php echo $profit_percentage; ?>%</div>
+							$prev_col_year = null;
 
-				</div>
+							foreach ( $results as $result ) {
 
-				<div class="graph-label">A/R Over 30</div>
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
-					<?php
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
+									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ),
+								);
 
-					foreach ( $results as $result ) {
+								echo render_graph_col( $bar_args );
 
-						$bar_args = array(
-							'value'							=> round( $result[ 'receivables' ][ 'ar_over_30' ] / $max[ 'ar_over_30' ] * 100 ),
-							'value_type'				=> 'total',
-							'bottom_sub_label'	=> '$' . number_format( $result[ 'receivables' ][ 'ar_over_30' ] ),
-						);
+							}
 
-						echo render_graph_col( $bar_args );
+							?>
 
-					}
+						</div>
+					</div>
 
-					?>
+					<div class="card">
+						<div class="graph-label">Unsecured Debt</div>
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-				</div>
+							<?php
 
-				<div class="graph-label">Cash on Hand</div>
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+							$prev_col_year = null;
 
-					<?php
+							foreach ( $results as $result ) {
 
-					foreach ( $results as $result ) {
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
-						$bar_args = array(
-							'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
-							'value_type'				=> 'total',
-							'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ),
-						);
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> round( $result[ 'cash_credit' ][ 'unsecured_debt' ] / $max[ 'unsecured_debt' ] * 100 ),
+									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'unsecured_debt' ] ),
+								);
 
-						echo render_graph_col( $bar_args );
+								echo render_graph_col( $bar_args );
 
-					}
+							}
 
-					?>
+							?>
 
-				</div>
+						</div>
+					</div>
 
-				<div class="graph-label">Unsecured Debt</div>
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<div class="card">
+						<div class="graph-label">Labor %</div>
+						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-					<?php
+							<?php
 
-					foreach ( $results as $result ) {
+							$prev_col_year = null;
 
-						$bar_args = array(
-							'value'							=> round( $result[ 'cash_credit' ][ 'unsecured_debt' ] / $max[ 'unsecured_debt' ] * 100 ),
-							'value_type'				=> 'total',
-							'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'unsecured_debt' ] ),
-						);
+							foreach ( $results as $result ) {
 
-						echo render_graph_col( $bar_args );
+								$revenue					= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$labor_expenses 	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ];
+								$labor_percentage	= round( $labor_expenses / $revenue * 100 );
 
-					}
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
-					?>
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> $labor_percentage,
+									'bottom_sub_label'	=> $labor_percentage . '%',
+								);
 
-				</div>
+								echo render_graph_col( $bar_args );
 
-				<div class="graph-label">Labor %</div>
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+							}
 
-					<?php
+							?>
 
-					foreach ( $results as $result ) {
+						</div>
+					</div>
 
-						$revenue					= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
-						$labor_expenses 	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ];
-						$labor_percentage	= round( $labor_expenses / $revenue * 100 );
+					<div class="card">
+						<div class="graph-label">Realization Rate</div>
+						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
 
-						$bar_args = array(
-							'value'							=> $labor_percentage,
-							'bottom_sub_label'	=> $labor_percentage . '%',
-						);
+							<?php
 
-						echo render_graph_col( $bar_args );
+							$prev_col_year = null;
 
-					}
+							foreach ( $results as $result ) {
 
-					?>
+								$real_rate = round( $result[ 'receivables' ][ 'real_rate' ] );
 
-				</div>
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
-				<div class="graph-label">Realization Rate</div>
-				<div class="graph-wrapper" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> $real_rate,
+									'bottom_sub_label'	=> $real_rate . '%',
+								);
 
-					<?php
+								echo render_graph_col( $bar_args );
 
-					foreach ( $results as $result ) {
+							}
 
-						$real_rate = round( $result[ 'receivables' ][ 'real_rate' ] );
+							?>
 
-						$bar_args = array(
-							'value'							=> $real_rate,
-							'bottom_sub_label'	=> $real_rate . '%',
-						);
-
-						echo render_graph_col( $bar_args );
-
-					}
-
-					?>
+						</div>
+					</div>
 
 				</div>
 
