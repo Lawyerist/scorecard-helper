@@ -3,19 +3,22 @@
   padding: 2rem;
 }
 
-#dashboard-financial-scorecard-widget .cards {
-  grid-gap: 2rem;
+#dashboard-financial-scorecard-widget .card .card {
+  border-radius: .2rem;
+  margin-bottom: .5rem;
+  padding: 1rem;
 }
 
 /* Graph Elements */
 
+#small-firm-dashboard .label-wrapper {
+  align-self: center;
+  padding-right: .5rem;
+}
+
 #small-firm-dashboard .graph-wrapper {
   line-height: 1.2;
   margin-bottom: 1.5rem;
-}
-
-#small-firm-dashboard .graph-wrapper.full-width-bars.value-type-total {
-  background-color: unset;
 }
 
 #small-firm-dashboard .graph-wrapper.full-width-bars {
@@ -23,9 +26,15 @@
 }
 
 #small-firm-dashboard .graph-label {
-  color: #888;
+  border-radius: .2rem;
+  color: #444;
   font-size: 1.6rem;
-  margin-bottom: .5rem;
+}
+
+#small-firm-dashboard .graph-sub-label {
+  color: #888;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
 }
 
 #small-firm-dashboard .result-wrapper {
@@ -39,10 +48,26 @@
     margin-bottom: 1rem;
   }
 
+  #small-firm-dashboard .graph-wrapper.full-width-bars .result-year {
+    margin-right: -.2rem;
+  }
+
+  #small-firm-dashboard .graph-wrapper.full-width-bars .result-wrapper:last-child .result-year {
+    margin-right: unset;
+  }
+
+  #dashboard-financial-scorecard-widget .result-year {
+    font-size: 1.2rem;
+  }
+
   #small-firm-dashboard .result-top-label {
     color: #888;
     font-size: 1.2rem;
     margin-bottom: 1rem;
+  }
+
+  #dashboard-financial-scorecard-widget .result-top-label {
+    font-size: 1rem;
   }
 
   #small-firm-dashboard .bar-wrapper {
@@ -87,8 +112,16 @@
     font-size: 2rem;
   }
 
+  #dashboard-financial-scorecard-widget .result-bottom-label {
+    font-size: 1.4rem;
+  }
+
     #small-firm-dashboard .result-bottom-sub-label {
       font-size: 1.2rem;
+    }
+
+    #dashboard-financial-scorecard-widget .result-bottom-sub-label {
+      font-size: 1rem;
     }
 
   #small-firm-dashboard .current-result {

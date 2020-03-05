@@ -50,16 +50,17 @@ function render_graph_col( $args = array() ) {
 }
 
 
+function render_gauge() {
+
+}
+
+
 function format_years( $this_col_year, $prev_col_year = null ) {
 
 	if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
-
 		$year = $this_col_year;
-
 	} else {
-
 		$year = '&nbsp;';
-
 	}
 
 	return $year;
@@ -212,7 +213,12 @@ function financial_scorecard_graph() {
 					$results	= array_slice( $results, $trim );
 				}
 
-				$num_results = count( $results );
+				$num_results	= count( $results );
+				$current			= $results[ $num_results - 1 ];
+
+				$green	= '#b1ffb1';
+				$yellow	= '#ffffb1';
+				$red		= '#ffb1b1';
 
 				// Calculate max values for non-percentage values.
 				$max_cash_on_hand		= 0;
@@ -247,29 +253,101 @@ function financial_scorecard_graph() {
 					'real_rate'				=> intval( $max_real_rate ),
 				);
 
+				$ranges = array();
+
+				if ( have_rows( 'profit_percentage_target', 'option' ) ) : while( have_rows( 'profit_percentage_target', 'option' ) ) : the_row();
+
+						$ranges[ 'profit_percentage' ][ 'min' ] = get_sub_field( 'profit_percentage_min' );
+						$ranges[ 'profit_percentage' ][ 'max' ] = get_sub_field( 'profit_percentage_max' );
+
+				endwhile; endif;
+
+				if ( have_rows( 'ar_target', 'option' ) ) : while( have_rows( 'ar_target', 'option' ) ) : the_row();
+
+						$ranges[ 'ar_over_30' ][ 'min' ] = get_sub_field( 'ar_min' );
+						$ranges[ 'ar_over_30' ][ 'max' ] = get_sub_field( 'ar_max' );
+
+				endwhile; endif;
+
+				if ( have_rows( 'cash_on_hand_target', 'option' ) ) : while( have_rows( 'cash_on_hand_target', 'option' ) ) : the_row();
+
+						$ranges[ 'cash_on_hand' ][ 'min' ] = get_sub_field( 'cash_on_hand_min' );
+						$ranges[ 'cash_on_hand' ][ 'max' ] = get_sub_field( 'cash_on_hand_max' );
+
+				endwhile; endif;
+
+				if ( have_rows( 'labor_percentage_target', 'option' ) ) : while( have_rows( 'labor_percentage_target', 'option' ) ) : the_row();
+
+						$ranges[ 'labor_percentage' ][ 'min' ] = get_sub_field( 'labor_percentage_min' );
+						$ranges[ 'labor_percentage' ][ 'max' ] = get_sub_field( 'labor_percentage_max' );
+
+				endwhile; endif;
+
+				if ( have_rows( 'real_rate_target', 'option' ) ) : while( have_rows( 'real_rate_target', 'option' ) ) : the_row();
+
+						$ranges[ 'real_rate' ][ 'min' ] = get_sub_field( 'real_rate_min' );
+						$ranges[ 'real_rate' ][ 'max' ] = get_sub_field( 'real_rate_max' );
+
+				endwhile; endif;
+
 				?>
 
-				<div class="cards">
+				<div class="card">
 
-					<div class="card">
-						<div class="graph-label">Profit %</div>
-						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<?php
+
+					$revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
+					$expenses		= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'operating' ];
+					$profit			= $revenue - $expenses;
+
+					$start		= new DateTime( $current[ 'reporting_period' ][ 'start_date' ] );
+					$end			= new DateTime( $current[ 'reporting_period' ][ 'end_date' ] );
+					$interval	= $start->diff( $end );
+
+					$days						= $interval->days;
+					$daily_expenses = $expenses / $days;
+
+
+					$profit_percentage = round( $profit / $revenue * 100 );
+
+					switch ( $profit_percentage ) {
+
+						case ( $profit_percentage >= $ranges[ 'profit_percentage' ][ 'max' ] ) :
+							$color = $green;
+							break;
+
+						case ( $profit_percentage < $ranges[ 'profit_percentage' ][ 'min' ] ) :
+							$color = $red;
+							break;
+
+						default :
+							$color = $yellow;
+
+					}
+
+					?>
+
+					<div class="card" style="background-color: <?php echo $color; ?>">
+						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
+
+							<div class="label-wrapper">
+								<div class="graph-label">Profit %</div>
+								<div class="graph-sub-label">Target: <?php echo $ranges[ 'profit_percentage' ][ 'min' ] . '–' . $ranges[ 'profit_percentage' ][ 'max' ]; ?>%</div>
+							</div>
 
 							<?php
 
-							$prev_col_year = null;
-
 							foreach ( $results as $result ) {
+
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
 
 								$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
 								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
 								$profit			= $revenue - $expenses;
 
-								$profit_percentage	= number_format( round( $profit / $revenue * 100 ) );
-
-								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
-								$year						= format_years( $this_col_year, $prev_col_year );
-								$prev_col_year	= $this_col_year;
+								$profit_percentage = number_format( round( $profit / $revenue * 100 ) );
 
 								$bar_args = array(
 									'year'							=> $year,
@@ -288,13 +366,36 @@ function financial_scorecard_graph() {
 						</div>
 					</div>
 
-					<div class="card">
-						<div class="graph-label">A/R Over 30</div>
-						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<?php
+
+					$ar_over_30 = round( $current[ 'receivables' ][ 'ar_over_30' ] );
+
+					switch ( $ar_over_30 ) {
+
+						case ( $ar_over_30 <= $ranges[ 'ar_over_30' ][ 'min' ] ) :
+							$color = $green;
+							break;
+
+						case ( $ar_over_30 > $ranges[ 'ar_over_30' ][ 'max' ] ) :
+							$color = $red;
+							break;
+
+						default :
+							$color = $yellow;
+
+					}
+
+					?>
+
+					<div class="card" style="background-color: <?php echo $color; ?>">
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
+
+							<div class="label-wrapper">
+								<div class="graph-label">A/R Over 30</div>
+								<div class="graph-sub-label">Target: $<?php echo number_format( $ranges[ 'ar_over_30' ][ 'min' ] ) . '&ndash;' . number_format( $ranges[ 'ar_over_30' ][ 'max' ] ); ?></div>
+							</div>
 
 							<?php
-
-							$prev_col_year = null;
 
 							foreach ( $results as $result ) {
 
@@ -318,13 +419,38 @@ function financial_scorecard_graph() {
 						</div>
 					</div>
 
-					<div class="card">
-						<div class="graph-label">Cash on Hand</div>
-						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<?php
+
+					$cash_needed_min	= $daily_expenses * $ranges[ 'cash_on_hand' ][ 'min' ];
+					$cash_needed_max	= $daily_expenses * $ranges[ 'cash_on_hand' ][ 'max' ];
+					$cash_on_hand 		= round( $current[ 'cash_credit' ][ 'cash_on_hand' ] );
+
+					switch ( $cash_on_hand ) {
+
+						case ( $cash_on_hand >= $cash_needed_max ) :
+							$color = $green;
+							break;
+
+						case ( $cash_on_hand < $cash_needed_min ) :
+							$color = $red;
+							break;
+
+						default :
+							$color = $yellow;
+
+					}
+
+					?>
+
+					<div class="card" style="background-color: <?php echo $color; ?>">
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
+
+							<div class="label-wrapper">
+								<div class="graph-label">Cash on Hand</div>
+								<div class="graph-sub-label">Target: <?php echo number_format( $ranges[ 'cash_on_hand' ][ 'min' ] ) . '&ndash;' . number_format( $ranges[ 'cash_on_hand' ][ 'max' ] ); ?> days</div>
+							</div>
 
 							<?php
-
-							$prev_col_year = null;
 
 							foreach ( $results as $result ) {
 
@@ -332,11 +458,25 @@ function financial_scorecard_graph() {
 								$year						= format_years( $this_col_year, $prev_col_year );
 								$prev_col_year	= $this_col_year;
 
+								$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
+								$profit			= $revenue - $expenses;
+
+								$result_start		= new DateTime( $result[ 'reporting_period' ][ 'start_date' ] );
+								$result_end			= new DateTime( $result[ 'reporting_period' ][ 'end_date' ] );
+								$result_interval	= $start->diff( $end );
+
+								$result_days						= $interval->days;
+								$result_daily_expenses	= $expenses / $days;
+
+								$result_cash_on_hand		= round( $result[ 'cash_credit' ][ 'cash_on_hand' ] );
+								$result_days_on_hand		=	round( $result_cash_on_hand / $result_daily_expenses );
+
 								$bar_args = array(
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
-									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ),
+									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
 								);
 
 								echo render_graph_col( $bar_args );
@@ -348,13 +488,14 @@ function financial_scorecard_graph() {
 						</div>
 					</div>
 
-					<div class="card">
-						<div class="graph-label">Unsecured Debt</div>
-						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<div class="card" style="background-color: <?php echo $color; ?>">
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
+
+							<div class="label-wrapper">
+								<div class="graph-label">Unsecured Debt</div>
+							</div>
 
 							<?php
-
-							$prev_col_year = null;
 
 							foreach ( $results as $result ) {
 
@@ -378,9 +519,36 @@ function financial_scorecard_graph() {
 						</div>
 					</div>
 
-					<div class="card">
-						<div class="graph-label">Labor %</div>
-						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<?php
+
+					$revenue					= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
+					$labor_expenses 	= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ];
+					$labor_percentage	= round( $labor_expenses / $revenue * 100 );
+
+					switch ( $labor_percentage ) {
+
+						case ( $labor_percentage < $ranges[ 'labor_percentage' ][ 'min' ] ) :
+							$color = $green;
+							break;
+
+						case ( $labor_percentage >= $ranges[ 'labor_percentage' ][ 'max' ] ) :
+							$color = $red;
+							break;
+
+						default :
+							$color = $yellow;
+
+					}
+
+					?>
+
+					<div class="card" style="background-color: <?php echo $color; ?>">
+						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
+
+							<div class="label-wrapper">
+								<div class="graph-label">Labor %</div>
+								<div class="graph-sub-label">Target: <?php echo $ranges[ 'labor_percentage' ][ 'min' ] . '&ndash;' . $ranges[ 'labor_percentage' ][ 'max' ]; ?>%</div>
+							</div>
 
 							<?php
 
@@ -388,13 +556,13 @@ function financial_scorecard_graph() {
 
 							foreach ( $results as $result ) {
 
-								$revenue					= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
-								$labor_expenses 	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ];
-								$labor_percentage	= round( $labor_expenses / $revenue * 100 );
-
 								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
 								$year						= format_years( $this_col_year, $prev_col_year );
 								$prev_col_year	= $this_col_year;
+
+								$revenue					= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$labor_expenses 	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ];
+								$labor_percentage	= round( $labor_expenses / $revenue * 100 );
 
 								$bar_args = array(
 									'year'							=> $year,
@@ -412,37 +580,64 @@ function financial_scorecard_graph() {
 						</div>
 					</div>
 
-					<div class="card">
-						<div class="graph-label">Realization Rate</div>
-						<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+					<?php
 
-							<?php
+					$real_rates_exist = false;
 
-							$prev_col_year = null;
+					foreach ( $results as $result ) {
 
-							foreach ( $results as $result ) {
+						if ( !empty( $result[ 'receivables' ][ 'real_rate' ] ) ) {
+							$real_rates_exist = true;
+							continue;
+						}
 
-								$real_rate = round( $result[ 'receivables' ][ 'real_rate' ] );
+					}
 
-								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
-								$year						= format_years( $this_col_year, $prev_col_year );
-								$prev_col_year	= $this_col_year;
+					if ( $real_rates_exist ) {
 
-								$bar_args = array(
-									'year'							=> $year,
-									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
-									'value'							=> $real_rate,
-									'bottom_sub_label'	=> $real_rate . '%',
-								);
+						?>
 
-								echo render_graph_col( $bar_args );
+						<div class="card" style="background-color: <?php echo $color; ?>">
+							<div class="graph-wrapper full-width-bars" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
 
-							}
+								<div class="label-wrapper">
+									<div class="graph-label">Realization Rate</div>
+									<div class="graph-sub-label">Target: <?php echo $ranges[ 'real_rate' ][ 'min' ] . '&ndash;' . $ranges[ 'real_rate' ][ 'max' ]; ?>%</div>
+								</div>
 
-							?>
+								<?php
 
+								$prev_col_year = null;
+
+								foreach ( $results as $result ) {
+
+									$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+									$year						= format_years( $this_col_year, $prev_col_year );
+									$prev_col_year	= $this_col_year;
+
+									$real_rate = round( $result[ 'receivables' ][ 'real_rate' ] );
+
+									$bar_args = array(
+										'year'							=> $year,
+										'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+										'value'							=> $real_rate,
+										'bottom_sub_label'	=> $real_rate . '%',
+									);
+
+									echo render_graph_col( $bar_args );
+
+								}
+
+								?>
+
+							</div>
 						</div>
-					</div>
+
+						<?php
+
+					}
+
+					?>
 
 				</div>
 

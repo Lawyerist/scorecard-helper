@@ -11,6 +11,28 @@ function scorecard_admin_reporting_menu() {
 add_action( 'admin_menu', 'scorecard_admin_reporting_menu' );
 
 
+/**
+* Adds an options page.
+*/
+function scorecard_acf_op_init() {
+
+  // Check function exists.
+  if( function_exists( 'acf_add_options_sub_page' ) ) {
+
+    acf_add_options_sub_page( array(
+      'page_title'  => __( 'Small Firm Dashboard Settings' ),
+      'menu_title'  => __( 'Small Firm Dashboard' ),
+      'parent_slug' => __( 'options-general.php' ),
+    ) );
+
+  }
+
+}
+
+add_action( 'acf/init', 'scorecard_acf_op_init' );
+
+
+
 // Get Active Labsters
 function scorecard_get_active_labsters() {
 
