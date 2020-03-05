@@ -292,7 +292,7 @@ function financial_scorecard_graph() {
 
 				?>
 
-				<div class="card">
+				<div class="cards">
 
 					<?php
 

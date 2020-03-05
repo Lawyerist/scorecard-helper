@@ -1,9 +1,9 @@
 #small-firm-dashboard .dashboard-card {
-  margin: 0;
+  margin: 0 0 1rem 0;
   padding: 2rem;
 }
 
-#dashboard-financial-scorecard-widget .card .card {
+#dashboard-financial-scorecard-widget .cards .card {
   border-radius: .2rem;
   margin-bottom: .5rem;
   padding: 1rem;
