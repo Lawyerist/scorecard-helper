@@ -104,6 +104,10 @@
       width: 100%;
     }
 
+    #dashboard-financial-scorecard-widget .bar {
+      background-color: #666;
+    }
+
     #small-firm-dashboard .value-type-total .bar {
       border-radius: .2rem;
     }

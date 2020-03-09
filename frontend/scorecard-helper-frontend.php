@@ -222,9 +222,7 @@ function financial_scorecard_graph() {
 
 				// Calculate max values for non-percentage values.
 				$max_cash_on_hand		= 0;
-				$max_unsecured_debt	= 0;
 				$max_ar_over_30			= 0;
-				$max_real_rate			= 0;
 
 				foreach ( $results as $result ) {
 
@@ -232,25 +230,15 @@ function financial_scorecard_graph() {
 						$max_cash_on_hand = intval( $result[ 'cash_credit' ][ 'cash_on_hand' ] );
 					}
 
-					if ( $max_unsecured_debt < intval( $result[ 'cash_credit' ][ 'unsecured_debt' ] ) ) {
-						$max_unsecured_debt = intval( $result[ 'cash_credit' ][ 'unsecured_debt' ] );
-					}
-
 					if ( $max_ar_over_30 < intval( $result[ 'receivables' ][ 'ar_over_30' ] ) ) {
 						$max_ar_over_30 = intval( $result[ 'receivables' ][ 'ar_over_30' ] );
-					}
-
-					if ( $max_real_rate < intval( $result[ 'receivables' ][ 'real_rate' ] ) ) {
-						$max_real_rate = intval( $result[ 'receivables' ][ 'real_rate' ] );
 					}
 
 				}
 
 				$max = array(
 					'cash_on_hand'		=> intval( $max_cash_on_hand ),
-					'unsecured_debt'	=> intval( $max_unsecured_debt ),
 					'ar_over_30'			=> intval( $max_ar_over_30 ),
-					'real_rate'				=> intval( $max_real_rate ),
 				);
 
 				$ranges = array();
@@ -337,6 +325,8 @@ function financial_scorecard_graph() {
 
 							<?php
 
+							$prev_col_year = null;
+
 							foreach ( $results as $result ) {
 
 								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
@@ -397,6 +387,8 @@ function financial_scorecard_graph() {
 
 							<?php
 
+							$prev_col_year = null;
+
 							foreach ( $results as $result ) {
 
 								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
@@ -452,6 +444,8 @@ function financial_scorecard_graph() {
 
 							<?php
 
+							$prev_col_year = null;
+
 							foreach ( $results as $result ) {
 
 								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
@@ -477,37 +471,6 @@ function financial_scorecard_graph() {
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
 									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
-								);
-
-								echo render_graph_col( $bar_args );
-
-							}
-
-							?>
-
-						</div>
-					</div>
-
-					<div class="card" style="background-color: <?php echo $color; ?>">
-						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
-
-							<div class="label-wrapper">
-								<div class="graph-label">Unsecured Debt</div>
-							</div>
-
-							<?php
-
-							foreach ( $results as $result ) {
-
-								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
-								$year						= format_years( $this_col_year, $prev_col_year );
-								$prev_col_year	= $this_col_year;
-
-								$bar_args = array(
-									'year'							=> $year,
-									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
-									'value'							=> round( $result[ 'cash_credit' ][ 'unsecured_debt' ] / $max[ 'unsecured_debt' ] * 100 ),
-									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'unsecured_debt' ] ),
 								);
 
 								echo render_graph_col( $bar_args );
@@ -568,6 +531,7 @@ function financial_scorecard_graph() {
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> $labor_percentage,
+									'title'							=> 'On ' . date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'F j, Y' ) . ', your total revenue was $' . number_format( $revenue ) . ' and your labor expenses were $' . number_format( $labor_expenses ) . '.',
 									'bottom_sub_label'	=> $labor_percentage . '%',
 								);
 
@@ -593,6 +557,23 @@ function financial_scorecard_graph() {
 
 					}
 
+					$real_rate = round( $current[ 'receivables' ][ 'real_rate' ] );
+
+					switch ( $real_rate ) {
+
+						case ( $real_rate >= $ranges[ 'real_rate' ][ 'max' ] ) :
+							$color = $green;
+							break;
+
+						case ( $real_rate < $ranges[ 'real_rate' ][ 'min' ] ) :
+							$color = $red;
+							break;
+
+						default :
+							$color = $yellow;
+
+					}
+
 					if ( $real_rates_exist ) {
 
 						?>
@@ -615,13 +596,21 @@ function financial_scorecard_graph() {
 									$year						= format_years( $this_col_year, $prev_col_year );
 									$prev_col_year	= $this_col_year;
 
+									$result_top_label	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' );
 									$real_rate = round( $result[ 'receivables' ][ 'real_rate' ] );
+									$bottom_sub_label = $real_rate . '%';
+
+									if ( !$real_rate ) {
+										$result_top_label	= null;
+										$real_rate				= null;
+										$bottom_sub_label	= null;
+									}
 
 									$bar_args = array(
 										'year'							=> $year,
-										'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+										'result_top_label'	=> $result_top_label,
 										'value'							=> $real_rate,
-										'bottom_sub_label'	=> $real_rate . '%',
+										'bottom_sub_label'	=> $bottom_sub_label,
 									);
 
 									echo render_graph_col( $bar_args );

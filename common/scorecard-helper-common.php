@@ -177,7 +177,7 @@ function get_financial_scorecard_results( $user_id = '' ) {
 				),
 				'cash_credit'				=> array(
 					'cash_on_hand'		=> $entry[ 301 ],
-					'unsecured_debt'	=> $entry[ 302 ],
+					// 'unsecured_debt'	=> $entry[ 302 ],
 				),
 				'receivables'				=> array(
 					'ar_over_30'			=> $entry[ 401 ],
