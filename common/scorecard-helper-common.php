@@ -173,11 +173,11 @@ function get_financial_scorecard_results( $user_id = '' ) {
 				'expenses'					=> array(
 					'owner_comp'			=> $entry[ 201 ],
 					'salaries'				=> $entry[ 202 ],
-					'operating'				=> $entry[ 203 ],
+					'other_expenses'	=> $entry[ 203 ],
 				),
 				'cash_credit'				=> array(
 					'cash_on_hand'		=> $entry[ 301 ],
-					// 'unsecured_debt'	=> $entry[ 302 ],
+					'credit_avail'		=> $entry[ 302 ],
 				),
 				'receivables'				=> array(
 					'ar_over_30'			=> $entry[ 401 ],

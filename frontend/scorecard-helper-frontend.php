@@ -221,13 +221,45 @@ function financial_scorecard_graph() {
 				$red		= '#ffb1b1';
 
 				// Calculate max values for non-percentage values.
+				$max_profit_growth	= 0;
 				$max_cash_on_hand		= 0;
+				$max_credit_avail		= 0;
 				$max_ar_over_30			= 0;
 
-				foreach ( $results as $result ) {
+				$prev_col_revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
+				$prev_col_expenses	= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
+				$prev_col_profit		= $prev_col_revenue - $prev_col_expenses;
+
+				$prev_col_year = null;
+
+				foreach ( $results as $key => $result ) {
+
+					if ( $key == 0 ) {
+
+						continue;
+
+					} else {
+
+						$this_col_revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+						$this_col_expenses	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
+						$this_col_profit		= $this_col_revenue - $this_col_expenses;
+
+						$profit_growth = round( ( $this_col_profit - $prev_col_profit ) / $prev_col_profit );
+
+						if ( $max_profit_growth < intval( $profit_growth ) ) {
+							$max_profit_growth = intval( $profit_growth );
+						}
+
+					}
+
+					$prev_col_profit = $this_col_profit;
 
 					if ( $max_cash_on_hand < intval( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) ) {
 						$max_cash_on_hand = intval( $result[ 'cash_credit' ][ 'cash_on_hand' ] );
+					}
+
+					if ( $max_credit_avail < intval( $result[ 'cash_credit' ][ 'credit_avail' ] ) ) {
+						$max_credit_avail = intval( $result[ 'cash_credit' ][ 'credit_avail' ] );
 					}
 
 					if ( $max_ar_over_30 < intval( $result[ 'receivables' ][ 'ar_over_30' ] ) ) {
@@ -237,11 +269,24 @@ function financial_scorecard_graph() {
 				}
 
 				$max = array(
+					'profit_growth'		=> intval( $max_profit_growth ),
 					'cash_on_hand'		=> intval( $max_cash_on_hand ),
+					'credit_avail'		=> intval( $max_credit_avail ),
 					'ar_over_30'			=> intval( $max_ar_over_30 ),
 				);
 
 				$ranges = array();
+
+				if ( have_rows( 'profit_growth_target', 'option' ) ) : while( have_rows( 'profit_growth_target', 'option' ) ) : the_row();
+
+						$ranges[ 'profit_growth' ][ 'min' ] = get_sub_field( 'profit_growth_min' );
+						$ranges[ 'profit_growth' ][ 'max' ] = get_sub_field( 'profit_growth_max' );
+
+						if ( $max[ 'profit_growth' ] < $ranges[ 'profit_growth' ][ 'max' ] ) {
+							$max[ 'profit_growth' ] = intval( $ranges[ 'profit_growth' ][ 'max' ] );
+						}
+
+				endwhile; endif;
 
 				if ( have_rows( 'profit_percentage_target', 'option' ) ) : while( have_rows( 'profit_percentage_target', 'option' ) ) : the_row();
 
@@ -264,6 +309,13 @@ function financial_scorecard_graph() {
 
 				endwhile; endif;
 
+				if ( have_rows( 'capital_avail_target', 'option' ) ) : while( have_rows( 'capital_avail_target', 'option' ) ) : the_row();
+
+						$ranges[ 'capital_avail' ][ 'min' ] = get_sub_field( 'capital_avail_min' );
+						$ranges[ 'capital_avail' ][ 'max' ] = get_sub_field( 'capital_avail_max' );
+
+				endwhile; endif;
+
 				if ( have_rows( 'labor_percentage_target', 'option' ) ) : while( have_rows( 'labor_percentage_target', 'option' ) ) : the_row();
 
 						$ranges[ 'labor_percentage' ][ 'min' ] = get_sub_field( 'labor_percentage_min' );
@@ -278,14 +330,95 @@ function financial_scorecard_graph() {
 
 				endwhile; endif;
 
+
+				$profit_growth = 5;
+
+				switch ( $profit_growth ) {
+
+					case ( $profit_growth >= $ranges[ 'profit_growth' ][ 'max' ] ) :
+						$color = $green;
+						break;
+
+					case ( $profit_growth < $ranges[ 'profit_growth' ][ 'min' ] ) :
+						$color = $red;
+						break;
+
+					default :
+						$color = $yellow;
+
+				}
+
 				?>
+
+				<div id="profit-growth-card" class="card" style="background-color: <?php echo $color; ?>">
+
+					<div class="label-wrapper">
+						<div class="graph-label">Profit Growth</div>
+						<div class="graph-sub-label">Target: <?php echo $ranges[ 'profit_growth' ][ 'min' ] . '–' . $ranges[ 'profit_growth' ][ 'max' ]; ?>%</div>
+					</div>
+
+					<div class="graph-wrapper value-type-total" style="display: grid; grid-template-columns: repeat( <?php echo $num_results; ?>, 1fr );">
+
+						<?php
+
+						$prev_col_revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
+						$prev_col_expenses	= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
+						$prev_col_profit		= $prev_col_revenue - $prev_col_expenses;
+
+						$prev_col_year 		= null;
+
+						foreach ( $results as $key => $result ) {
+
+							$this_col_year		= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+							$year							= format_years( $this_col_year, $prev_col_year );
+							$prev_col_year		= $this_col_year;
+
+							if ( $key == 0 ) {
+
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> '',
+									'bottom_sub_label'	=> 'N/A',
+								);
+
+								echo render_graph_col( $bar_args );
+
+							} else {
+
+								$this_col_revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$this_col_expenses	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
+								$this_col_profit		= $this_col_revenue - $this_col_expenses;
+
+								$profit_growth = round( ( $this_col_profit - $prev_col_profit ) / $prev_col_profit );
+
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> round( $profit_growth / $max[ 'profit_growth' ] * 100 ),
+									'title'							=> 'Your profit went from ' . $prev_col_profit . ' to ' . $this_col_profit . '.',
+									'bottom_sub_label'	=> $profit_growth . '%',
+								);
+
+								echo render_graph_col( $bar_args );
+
+							}
+
+							$prev_col_profit = $this_col_profit;
+
+						}
+
+						?>
+
+					</div>
+				</div>
 
 				<div class="cards">
 
 					<?php
 
 					$revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
-					$expenses		= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'operating' ];
+					$expenses		= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
 					$profit			= $revenue - $expenses;
 
 					$start		= new DateTime( $current[ 'reporting_period' ][ 'start_date' ] );
@@ -334,7 +467,7 @@ function financial_scorecard_graph() {
 								$prev_col_year	= $this_col_year;
 
 								$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
-								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
+								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
 								$profit			= $revenue - $expenses;
 
 								$profit_percentage = number_format( round( $profit / $revenue * 100 ) );
@@ -453,7 +586,7 @@ function financial_scorecard_graph() {
 								$prev_col_year	= $this_col_year;
 
 								$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
-								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'operating' ];
+								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
 								$profit			= $revenue - $expenses;
 
 								$result_start		= new DateTime( $result[ 'reporting_period' ][ 'start_date' ] );
@@ -471,6 +604,77 @@ function financial_scorecard_graph() {
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
 									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
+								);
+
+								echo render_graph_col( $bar_args );
+
+							}
+
+							?>
+
+						</div>
+					</div>
+
+					<?php
+
+					$capital_needed_min	= $daily_expenses * $ranges[ 'capital_avail' ][ 'min' ];
+					$capital_needed_max	= $daily_expenses * $ranges[ 'capital_avail' ][ 'max' ];
+					$capital_avail			= round( $current[ 'cash_credit' ][ 'cash_on_hand' ] + $current[ 'cash_credit' ][ 'credit_avail' ] );
+
+					switch ( $capital_avail ) {
+
+						case ( $capital_avail >= $capital_needed_max ) :
+							$color = $green;
+							break;
+
+						case ( $capital_avail < $capital_needed_min ) :
+							$color = $red;
+							break;
+
+						default :
+							$color = $yellow;
+
+					}
+
+					?>
+
+					<div class="card" style="background-color: <?php echo $color; ?>">
+						<div class="graph-wrapper full-width-bars value-type-total" style="display: grid; grid-template-columns: 30% repeat( <?php echo $num_results; ?>, 1fr );">
+
+							<div class="label-wrapper">
+								<div class="graph-label">Capital Available</div>
+								<div class="graph-sub-label">Target: <?php echo number_format( $ranges[ 'capital_avail' ][ 'min' ] ) . '&ndash;' . number_format( $ranges[ 'capital_avail' ][ 'max' ] ); ?> days</div>
+							</div>
+
+							<?php
+
+							$prev_col_year = null;
+
+							foreach ( $results as $result ) {
+
+								$this_col_year	= date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'Y' );
+								$year						= format_years( $this_col_year, $prev_col_year );
+								$prev_col_year	= $this_col_year;
+
+								$revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$expenses		= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
+								$profit			= $revenue - $expenses;
+
+								$result_start		= new DateTime( $result[ 'reporting_period' ][ 'start_date' ] );
+								$result_end			= new DateTime( $result[ 'reporting_period' ][ 'end_date' ] );
+								$result_interval	= $start->diff( $end );
+
+								$result_days						= $interval->days;
+								$result_daily_expenses	= $expenses / $days;
+
+								$result_capital_avail		= round( $result[ 'cash_credit' ][ 'cash_on_hand' ] + $result[ 'cash_credit' ][ 'credit_avail' ] );
+								$result_days_on_hand		=	round( $result_capital_avail / $result_daily_expenses );
+
+								$bar_args = array(
+									'year'							=> $year,
+									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
+									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
+									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] + $result[ 'cash_credit' ][ 'credit_avail' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
 								);
 
 								echo render_graph_col( $bar_args );

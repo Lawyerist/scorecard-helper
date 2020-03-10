@@ -3,11 +3,16 @@
   padding: 2rem;
 }
 
-#dashboard-financial-scorecard-widget .cards .card {
+#dashboard-financial-scorecard-widget .card {
+  border: .1rem solid #ddd;
   border-radius: .2rem;
-  margin-bottom: .5rem;
+  margin: 0;
   padding: 1rem;
 }
+
+  #profit-growth-card.card {
+    margin-bottom: 1rem;
+  }
 
 /* Graph Elements */
 
@@ -85,6 +90,10 @@
 
     #dashboard-financial-scorecard-widget .bar-wrapper {
       height: 3rem;
+    }
+
+    #profit-growth-card .bar-wrapper {
+      height: 10rem;
     }
 
     #small-firm-dashboard .value-type-total .bar-wrapper {
