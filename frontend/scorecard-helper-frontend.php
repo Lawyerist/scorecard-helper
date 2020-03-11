@@ -179,6 +179,15 @@ function scorecard_results_graph() {
 
 }
 
+function format_dollars( $number ) {
+
+	if ( $number < 0 ) {
+		return '-$' . number_format( abs( $number ) );
+	} else {
+		return '$' . number_format( abs( $number ) );
+	}
+
+}
 
 /**
 * Small Firm Dashboard: Financial Scorecard
@@ -215,6 +224,7 @@ function financial_scorecard_graph() {
 
 				$num_results	= count( $results );
 				$current			= $results[ $num_results - 1 ];
+				$prev					= $results[ $num_results - 2 ];
 
 				$green	= '#b1ffb1';
 				$yellow	= '#ffffb1';
@@ -244,10 +254,11 @@ function financial_scorecard_graph() {
 						$this_col_expenses	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
 						$this_col_profit		= $this_col_revenue - $this_col_expenses;
 
-						$profit_growth = round( ( $this_col_profit - $prev_col_profit ) / $prev_col_profit );
+						$profit_growth			= $this_col_profit - $prev_col_profit;
+						$profit_growth_rate	= round( $profit_growth / abs( $prev_col_profit ) * 100 );
 
-						if ( $max_profit_growth < intval( $profit_growth ) ) {
-							$max_profit_growth = intval( $profit_growth );
+						if ( $max_profit_growth < intval( $profit_growth_rate ) ) {
+							$max_profit_growth = intval( $profit_growth_rate );
 						}
 
 					}
@@ -330,19 +341,28 @@ function financial_scorecard_graph() {
 
 				endwhile; endif;
 
+				$prev_col_revenue		= $prev[ 'revenue' ][ 'fee_income' ] + $prev[ 'revenue' ][ 'other_income' ];
+				$prev_col_expenses	= $prev[ 'expenses' ][ 'owner_comp' ] + $prev[ 'expenses' ][ 'salaries' ] + $prev[ 'expenses' ][ 'other_expenses' ];
+				$prev_col_profit		= $prev_col_revenue - $prev_col_expenses;
 
-				$profit_growth = 5;
+				$this_col_revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
+				$this_col_expenses	= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
+				$this_col_profit		= $this_col_revenue - $this_col_expenses;
 
-				switch ( $profit_growth ) {
+				$profit_growth			= $this_col_profit - $prev_col_profit;
+				$profit_growth_rate	= round( $profit_growth / abs( $prev_col_profit ) * 100 );
 
-					case ( $profit_growth >= $ranges[ 'profit_growth' ][ 'max' ] ) :
+				switch ( $profit_growth_rate ) {
+
+					case ( $this_col_profit > 0 && $profit_growth_rate >= $ranges[ 'profit_growth' ][ 'max' ] ) :
 						$color = $green;
 						break;
 
-					case ( $profit_growth < $ranges[ 'profit_growth' ][ 'min' ] ) :
+					case ( $profit_growth_rate < $ranges[ 'profit_growth' ][ 'min' ] ) :
 						$color = $red;
 						break;
 
+					case ( $this_col_profit <= 0 && $profit_growth_rate >= $ranges[ 'profit_growth' ][ 'max' ] ) :
 					default :
 						$color = $yellow;
 
@@ -361,10 +381,6 @@ function financial_scorecard_graph() {
 
 						<?php
 
-						$prev_col_revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
-						$prev_col_expenses	= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
-						$prev_col_profit		= $prev_col_revenue - $prev_col_expenses;
-
 						$prev_col_year 		= null;
 
 						foreach ( $results as $key => $result ) {
@@ -375,10 +391,15 @@ function financial_scorecard_graph() {
 
 							if ( $key == 0 ) {
 
+								$prev_col_revenue		= $result[ 'revenue' ][ 'fee_income' ] + $result[ 'revenue' ][ 'other_income' ];
+								$prev_col_expenses	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
+								$prev_col_profit		= $prev_col_revenue - $prev_col_expenses;
+
 								$bar_args = array(
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> '',
+									'title'							=> 'Your starting profit was ' . format_dollars( $prev_col_profit ) . '.',
 									'bottom_sub_label'	=> 'N/A',
 								);
 
@@ -390,21 +411,22 @@ function financial_scorecard_graph() {
 								$this_col_expenses	= $result[ 'expenses' ][ 'owner_comp' ] + $result[ 'expenses' ][ 'salaries' ] + $result[ 'expenses' ][ 'other_expenses' ];
 								$this_col_profit		= $this_col_revenue - $this_col_expenses;
 
-								$profit_growth = round( ( $this_col_profit - $prev_col_profit ) / $prev_col_profit );
+								$profit_growth			= $this_col_profit - $prev_col_profit;
+								$profit_growth_rate	= round( $profit_growth / abs( $prev_col_profit ) * 100 );
 
 								$bar_args = array(
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
-									'value'							=> round( $profit_growth / $max[ 'profit_growth' ] * 100 ),
-									'title'							=> 'Your profit went from ' . $prev_col_profit . ' to ' . $this_col_profit . '.',
-									'bottom_sub_label'	=> $profit_growth . '%',
+									'value'							=> number_format( $profit_growth_rate / $max[ 'profit_growth' ] * 100 ),
+									'title'							=> 'Your profit went from ' . format_dollars( $prev_col_profit ) . ' to ' . format_dollars( $this_col_profit ) . '.',
+									'bottom_sub_label'	=> number_format( $profit_growth_rate ) . '%',
 								);
 
 								echo render_graph_col( $bar_args );
 
-							}
+								$prev_col_profit = $this_col_profit;
 
-							$prev_col_profit = $this_col_profit;
+							}
 
 						}
 
@@ -417,9 +439,9 @@ function financial_scorecard_graph() {
 
 					<?php
 
-					$revenue		= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
-					$expenses		= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
-					$profit			= $revenue - $expenses;
+					$revenue	= $current[ 'revenue' ][ 'fee_income' ] + $current[ 'revenue' ][ 'other_income' ];
+					$expenses	= $current[ 'expenses' ][ 'owner_comp' ] + $current[ 'expenses' ][ 'salaries' ] + $current[ 'expenses' ][ 'other_expenses' ];
+					$profit		= $revenue - $expenses;
 
 					$start		= new DateTime( $current[ 'reporting_period' ][ 'start_date' ] );
 					$end			= new DateTime( $current[ 'reporting_period' ][ 'end_date' ] );
@@ -427,7 +449,6 @@ function financial_scorecard_graph() {
 
 					$days						= $interval->days;
 					$daily_expenses = $expenses / $days;
-
 
 					$profit_percentage = round( $profit / $revenue * 100 );
 
@@ -476,7 +497,7 @@ function financial_scorecard_graph() {
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> $profit_percentage,
-									'title'							=> 'On ' . date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'F j, Y' ) . ', your total revenue was $' . number_format( $revenue ) . ' and your expenses were $' . number_format( $expenses ) . ', for a profit of $' . number_format( $profit ) . '.',
+									'title'							=> 'On ' . date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'F j, Y' ) . ', your total revenue was ' . format_dollars( $revenue ) . ' and your expenses were ' . format_dollars( $expenses ) . ', for a profit of ' . format_dollars( $profit ) . '.',
 									'bottom_sub_label'	=> $profit_percentage . '%',
 								);
 
@@ -532,7 +553,7 @@ function financial_scorecard_graph() {
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> round( $result[ 'receivables' ][ 'ar_over_30' ] / $max[ 'ar_over_30' ] * 100 ),
-									'bottom_sub_label'	=> '$' . number_format( $result[ 'receivables' ][ 'ar_over_30' ] ),
+									'bottom_sub_label'	=> format_dollars( $result[ 'receivables' ][ 'ar_over_30' ] ),
 								);
 
 								echo render_graph_col( $bar_args );
@@ -603,7 +624,7 @@ function financial_scorecard_graph() {
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
-									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
+									'bottom_sub_label'	=> format_dollars( $result[ 'cash_credit' ][ 'cash_on_hand' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
 								);
 
 								echo render_graph_col( $bar_args );
@@ -674,7 +695,7 @@ function financial_scorecard_graph() {
 									'year'							=> $year,
 									'result_top_label'	=> date_format( date_create( $result[ 'reporting_period' ][ 'end_date' ] ), 'n/d' ),
 									'value'							=> round( $result[ 'cash_credit' ][ 'cash_on_hand' ] / $max[ 'cash_on_hand' ] * 100 ),
-									'bottom_sub_label'	=> '$' . number_format( $result[ 'cash_credit' ][ 'cash_on_hand' ] + $result[ 'cash_credit' ][ 'credit_avail' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
+									'bottom_sub_label'	=> format_dollars( $result[ 'cash_credit' ][ 'cash_on_hand' ] + $result[ 'cash_credit' ][ 'credit_avail' ] ) . '<br />' . number_format( $result_days_on_hand ) . ' days',
 								);
 
 								echo render_graph_col( $bar_args );
