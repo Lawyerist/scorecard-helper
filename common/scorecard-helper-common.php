@@ -143,7 +143,7 @@ function get_financial_scorecard_results( $user_id = '' ) {
 	$results		= array();
 
 	// Defines variables for the Gravity Forms API.
-	$form_ids	= 63;
+	$form_ids	= 64;
 
 	$search_criteria[ 'field_filters' ][] = array(
 		'key'		=> 'created_by',

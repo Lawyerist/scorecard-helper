@@ -211,7 +211,7 @@ function financial_scorecard_graph() {
 
 				<p class="dashboard-widget-note">We don't have any financial metrics for your firm yet.</p>
 				<p class="dashboard-widget-note">The Small Firm Financial Scorecard will help you discover what your firm is doing well and identify areas for improvement to help grow your law firm. It should take 10–15 minutes to complete.</p>
-				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/scorecard/">Get My Score</a></p>
+				<p align="center" class="remove_bottom"><a class="button remove_bottom" href="https://lawyerist.com/community/scorecard/financial-scorecard/">Get My Score</a></p>
 
 				<?php
 
@@ -868,3 +868,23 @@ function financial_scorecard_graph() {
 	return ob_get_clean();
 
 }
+
+function financial_scorecard_graph_shortcode() {
+
+	ob_start();
+
+		?>
+
+		<div id="small-firm-dashboard">
+
+			<?php echo financial_scorecard_graph(); ?>
+
+		</div>
+
+		<?php
+
+	return ob_get_clean();
+	
+}
+
+add_shortcode( 'financial-scorecard-graph', 'financial_scorecard_graph_shortcode' );
