@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [2.0.2] - 2020-03-15
+
+### [Fixed]
+- Gave dashboards cards a background color.
 
 ## [2.0.1] - 2020-03-15
 
