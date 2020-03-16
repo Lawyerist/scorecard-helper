@@ -1,52 +1,143 @@
-/* Insider Dashboard Scorecard Widget */
-
-#dashboard-scorecard-widget.card {
-  background-color: #fff;
+#small-firm-dashboard .dashboard-card {
+  margin: 0 0 1rem 0;
   padding: 2rem;
 }
 
-#dashboard-scorecard-widget .scorecard-results-wrapper {
+#dashboard-financial-scorecard-widget .card {
+  border: .1rem solid #ddd;
+  border-radius: .2rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+  #profit-growth-card.card {
+    margin-bottom: 1rem;
+  }
+
+/* Graph Elements */
+
+#small-firm-dashboard .label-wrapper {
+  align-self: center;
+  padding-right: .5rem;
+}
+
+#small-firm-dashboard .graph-wrapper {
   line-height: 1.2;
   margin-bottom: 1.5rem;
 }
 
-  #dashboard-scorecard-widget .scorecard-result-wrapper {
-    display: inline-block;
-    text-align: center;
+#small-firm-dashboard .graph-wrapper.full-width-bars {
+  grid-column-gap: .2rem;
+}
+
+#small-firm-dashboard .graph-label {
+  border-radius: .2rem;
+  color: #444;
+  font-size: 1.6rem;
+}
+
+#small-firm-dashboard .graph-sub-label {
+  color: #888;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+#small-firm-dashboard .result-wrapper {
+  text-align: center;
+}
+
+  #small-firm-dashboard .result-year {
+    border-bottom: .1rem solid #ddd;
+    color: #888;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
   }
 
-    #dashboard-scorecard-widget .scorecard-year {
-      border-bottom: .1rem solid #ddd;
-      color: #888;
-      font-size: 1.6rem;
-      margin-bottom: 1rem;
+  #small-firm-dashboard .graph-wrapper.full-width-bars .result-year {
+    margin-right: -.2rem;
+  }
+
+  #small-firm-dashboard .graph-wrapper.full-width-bars .result-wrapper:last-child .result-year {
+    margin-right: unset;
+  }
+
+  #dashboard-financial-scorecard-widget .result-year {
+    font-size: 1.2rem;
+  }
+
+  #small-firm-dashboard .result-top-label {
+    color: #888;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  #dashboard-financial-scorecard-widget .result-top-label {
+    font-size: 1rem;
+  }
+
+  #small-firm-dashboard .bar-wrapper {
+    background-color: #ddd;
+    border-radius: .2rem;
+    box-sizing: border-box;
+    height: 10rem;
+    margin: 0 auto 1rem auto;
+    max-width: 3rem;
+    min-width: 1rem;
+    overflow: hidden;
+    position: relative;
+    width: 20%;
+  }
+
+    #dashboard-financial-scorecard-widget .bar-wrapper {
+      height: 3rem;
     }
 
-    #dashboard-scorecard-widget .scorecard-month-day {
-      color: #888;
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-    }
-
-    #dashboard-scorecard-widget .scorecard-bar-wrapper {
-      background-color: #ddd;
-      border-radius: .2rem;
+    #profit-growth-card .bar-wrapper {
       height: 10rem;
-      margin: 0 auto 1rem auto;
-      max-width: 3rem;
-      min-width: 1rem;
-      width: 20%;
-      position: relative;
     }
 
-      #dashboard-scorecard-widget .scorecard-bar {
-        background-color: #c00;
-        border-radius: 0 0 .2rem .2rem;
-        position: absolute;
-          bottom: 0;
-        width: 100%;
-      }
+    #small-firm-dashboard .value-type-total .bar-wrapper {
+      background-color: unset;
+    }
 
-    #dashboard-scorecard-widget .scorecard-percentage {
+    #small-firm-dashboard .full-width-bars .bar-wrapper {
+      max-width: unset;
+      width: 100%;
+    }
+
+    #small-firm-dashboard .bar {
+      background-color: #c00;
+      border-radius: 0 0 .2rem .2rem;
+      position: absolute;
+        bottom: 0;
+      width: 100%;
+    }
+
+    #dashboard-financial-scorecard-widget .bar {
+      background-color: #666;
+    }
+
+    #small-firm-dashboard .value-type-total .bar {
+      border-radius: .2rem;
+    }
+
+  #small-firm-dashboard .result-bottom-label {
+    font-size: 2rem;
+  }
+
+  #dashboard-financial-scorecard-widget .result-bottom-label {
+    font-size: 1.4rem;
+  }
+
+    #small-firm-dashboard .result-bottom-sub-label {
       font-size: 1.2rem;
     }
+
+    #dashboard-financial-scorecard-widget .result-bottom-sub-label {
+      font-size: 1rem;
+    }
+
+  #small-firm-dashboard .current-result {
+    align-self: center;
+    font-size: 3.2rem;
+  }
