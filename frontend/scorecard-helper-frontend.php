@@ -201,7 +201,7 @@ function financial_scorecard_graph() {
 		?>
 
 		<div id="dashboard-financial-scorecard-widget" class="dashboard-card card">
-			<div class="card-label">Financial Scorecard</div>
+			<div class="card-label">Financial Scorecard (BETA)</div>
 
 			<?php
 
@@ -884,7 +884,7 @@ function financial_scorecard_graph_shortcode() {
 		<?php
 
 	return ob_get_clean();
-	
+
 }
 
 add_shortcode( 'financial-scorecard-graph', 'financial_scorecard_graph_shortcode' );
