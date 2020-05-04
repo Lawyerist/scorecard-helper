@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+
+## [2.0.3] - 2020-05-04
+
+### [Added]
+- Documentation.
+
+
 ## [2.0.2] - 2020-03-15
 
 ### [Fixed]

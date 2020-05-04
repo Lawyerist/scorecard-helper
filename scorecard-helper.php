@@ -6,7 +6,7 @@ Plugin URI: https://lawyerist.com
 Description: Enhanced functionality for the Small Firm Scorecard.
 Author: Sam Glover
 Version: 1.0.0.
-Author URI: http://lawyerist.com
+Author URI: https://lawyerist.com
 */
 
 if ( !defined( 'ABSPATH' ) ) exit;
