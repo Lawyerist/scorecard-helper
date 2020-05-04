@@ -3,14 +3,14 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 /**
-* Assembles a bar to be used in a bar graph.
+* Assembles a bar to be used in a bar graph. Requires an array.
 */
 function render_graph_col( $args = array() ) {
 
 	$defaults = array(
 		'year'							=> null,
 		'result_top_label'	=> null,
-		'value'							=> null,
+		'value'							=> null, // Required in order to return a bar.
 		'title'							=> null,
 		'bottom_label'			=> null,
 		'bottom_sub_label'	=> null,
@@ -50,11 +50,10 @@ function render_graph_col( $args = array() ) {
 }
 
 
-function render_gauge() {
-
-}
-
-
+/**
+* Cleans up the dashboard reports by showing the year only in the first column
+* of reports for that year.
+*/
 function format_years( $this_col_year, $prev_col_year = null ) {
 
 	if ( empty( $prev_col_year ) || $this_col_year != $prev_col_year ) {
@@ -70,6 +69,8 @@ function format_years( $this_col_year, $prev_col_year = null ) {
 
 /**
 * Small Firm Dashboard: Small Firm Scorecard
+*
+* Displays the Small Firm Scorecard dashboard.
 */
 function scorecard_results_graph() {
 
@@ -179,6 +180,11 @@ function scorecard_results_graph() {
 
 }
 
+
+/**
+* Utility function to add the dollar sign and make sure the '-' symbol shows up
+* on the right side of the '$' for negative numbers.
+*/
 function format_dollars( $number ) {
 
 	if ( $number < 0 ) {
@@ -189,8 +195,12 @@ function format_dollars( $number ) {
 
 }
 
+
 /**
 * Small Firm Dashboard: Financial Scorecard
+*
+* Displays the Small Firm Financial Scorecard on the dashboard, broken up into
+* five different graphs.
 */
 function financial_scorecard_graph() {
 
@@ -201,7 +211,7 @@ function financial_scorecard_graph() {
 		?>
 
 		<div id="dashboard-financial-scorecard-widget" class="dashboard-card card">
-			<div class="card-label">Financial Scorecard</div>
+			<div class="card-label">Financial Scorecard (BETA)</div>
 
 			<?php
 
@@ -869,6 +879,7 @@ function financial_scorecard_graph() {
 
 }
 
+
 function financial_scorecard_graph_shortcode() {
 
 	ob_start();
@@ -884,7 +895,7 @@ function financial_scorecard_graph_shortcode() {
 		<?php
 
 	return ob_get_clean();
-	
+
 }
 
 add_shortcode( 'financial-scorecard-graph', 'financial_scorecard_graph_shortcode' );

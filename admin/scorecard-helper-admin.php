@@ -33,7 +33,15 @@ add_action( 'acf/init', 'scorecard_acf_op_init' );
 
 
 
-// Get Active Labsters
+/**
+* Get Active Labsters
+*
+* Relies on WooCommerce Memberships to determine who has an active Lab
+* membership.
+*
+* Returns an array with user ID, email, and name. (Email is used to retrieve
+* Scorecard 1.0 entries, and user ID is used to retrieve Scorecard 2.0 entries.)
+*/
 function scorecard_get_active_labsters() {
 
 	$args = array(
@@ -76,7 +84,11 @@ function scorecard_get_active_labsters() {
 }
 
 
-// Outputs the reports on the page.
+/**
+* Outputs the reports on the page.
+*
+* A "scorecard" or Scorecard entry is a Gravity Forms entry object.
+*/
 function scorecard_admin_reporting() {
 
 	?>
@@ -85,7 +97,10 @@ function scorecard_admin_reporting() {
 
 		<?php
 
-		// Checks to see if an email address was provided in the URL.
+		/**
+		* Checks to see if an email address was provided in the URL. If so, outputs
+		* that person's report. Otherwise, outputs all Labsters' reports.
+		*/
 		if ( isset( $_GET[ 'user_email' ] ) ) :
 
 			$user_email	= $_GET[ 'user_email' ];
@@ -168,7 +183,7 @@ function scorecard_admin_reporting() {
 
 					<?php
 
-					$labsters						= scorecard_get_active_labsters();
+					$labsters	= scorecard_get_active_labsters();
 					$results	= array();
 
 					foreach ( $labsters as $labster ) {
@@ -226,7 +241,7 @@ function scorecard_admin_reporting() {
 
 		?>
 
-	</div><!-- Close .wrap ?>
+	</div><!-- Close .wrap -->
 
 	<?php
 
